@@ -1,0 +1,87 @@
+﻿@model GymNet.ViewModels.MemberDashboardViewModel
+@{
+    ViewBag.Title = "Member Dashboard";
+    ViewBag.Active = "Dashboard";
+    Layout = "~/Views/Shared/_MemberLayout.cshtml";
+}
+
+<h2 class="fw-bold mb-1">Welcome, @Model.FirstName</h2>
+<p class="text-muted mb-4">Here's your GymNet overview.</p>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card shadow-sm h-100">
+            <div class="card-body">
+                <div class="stat-icon bg-danger bg-opacity-10 text-danger mb-3">
+                    <i class="bi bi-patch-check-fill"></i>
+                </div>
+                <h6 class="text-muted mb-1">Membership Status</h6>
+                <h4 class="fw-bold">
+                    @if (Model.MembershipStatus == "Active")
+                    {
+                        <span class="badge bg-success">Active</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">No Active Plan</span>
+                    }
+                </h4>
+                <p class="text-muted small mb-0">Plan: @(Model.MembershipPlan ?? "None")</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card shadow-sm h-100">
+            <div class="card-body">
+                <div class="stat-icon bg-success bg-opacity-10 text-success mb-3">
+                    <i class="bi bi-credit-card-2-front-fill"></i>
+                </div>
+                <h6 class="text-muted mb-1">Payment Status</h6>
+                <h4 class="fw-bold">
+                    @if (Model.PaymentStatus == "Completed" || Model.PaymentStatus == "Paid")
+                    {
+                        <span class="badge bg-success">Paid</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    }
+                </h4>
+                <p class="text-muted small mb-0">Latest transaction details</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card shadow-sm h-100">
+            <div class="card-body">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary mb-3">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <h6 class="text-muted mb-2">Profile Details</h6>
+                <p class="mb-1"><strong>@Model.FirstName @Model.LastName</strong></p>
+                <p class="mb-1 small text-muted">@Model.Email</p>
+                <p class="mb-1 small text-muted">@Model.PhoneNumber</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Banner -->
+<div class="card bg-light border-0 shadow-sm p-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h5 class="fw-bold mb-1">Manage Your Gym Access</h5>
+            <p class="text-muted mb-0">Explore membership options or check your payment receipts.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("Plans", "Membership")" class="btn btn-danger">
+                <i class="bi bi-grid me-1"></i> View Plans
+            </a>
+            <a href="@Url.Action("PaymentHistory", "Membership")" class="btn btn-outline-dark">
+                <i class="bi bi-receipt me-1"></i> Payment History
+            </a>
+        </div>
+    </div>
+</div>

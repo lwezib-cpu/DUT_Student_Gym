@@ -1,0 +1,173 @@
+﻿@model List<GymNet.ViewModels.MemberListItemViewModel>
+@{
+    ViewBag.Title = "Members";
+    ViewBag.Active = "Members";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="fw-bold mb-1">All Members</h2>
+<p class="text-muted mb-4">View and manage all gym members.</p>
+
+<!-- Search and Filter -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm("Members", "Admin", FormMethod.Get))
+        {
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="searchTerm" class="form-control"
+                           placeholder="Search by name or email..."
+                           value="@ViewBag.SearchTerm" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Membership Status</label>
+                    <select name="membershipStatus" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="Paid" @(ViewBag.MembershipStatus == "Paid" ? "selected" : "")>Paid Members</option>
+                        <option value="Unpaid" @(ViewBag.MembershipStatus == "Unpaid" ? "selected" : "")>Unpaid Members</option>
+                        <option value="Active" @(ViewBag.MembershipStatus == "Active" ? "selected" : "")>Active Membership</option>
+                        <option value="Expired" @(ViewBag.MembershipStatus == "Expired" ? "selected" : "")>Expired</option>
+                        <option value="Cancelled" @(ViewBag.MembershipStatus == "Cancelled" ? "selected" : "")>Cancelled</option>
+                        <option value="No Membership" @(ViewBag.MembershipStatus == "No Membership" ? "selected" : "")>No Membership</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Account Status</label>
+                    <select name="accountStatus" class="form-select">
+                        <option value="">All Accounts</option>
+                        <option value="Active" @(ViewBag.AccountStatus == "Active" ? "selected" : "")>Active</option>
+                        <option value="Deactivated" @(ViewBag.AccountStatus == "Deactivated" ? "selected" : "")>Deactivated</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="bi bi-search me-1"></i>Search
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Members Table -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Member</th>
+                        <th>Contact</th>
+                        <th>Member Since</th>
+                        <th>Membership Plan</th>
+                        <th>Payment</th>
+                        <th>Membership</th>
+                        <th>Account</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var member in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-danger bg-opacity-10 text-danger me-2">
+                                            @member.FullName.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <div>
+                                            <strong>@member.FullName</strong>
+                                            <br />
+                                            <small class="text-muted">@member.Email</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <i class="bi bi-telephone me-1"></i>@member.PhoneNumber
+                                </td>
+                                <td>
+                                    @if (member.MemberSince.HasValue)
+                                    {
+                                        @member.MemberSince.Value.ToString("dd MMM yyyy")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+                                <td>@member.MembershipPlan</td>
+                                <td>
+                                    @if (member.HasPaid)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>Paid
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-exclamation-circle me-1"></i>Unpaid
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (member.MembershipStatus == "Active")
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else if (member.MembershipStatus == "Expired")
+                                    {
+                                        <span class="badge bg-warning text-dark">Expired</span>
+                                    }
+                                    else if (member.MembershipStatus == "Cancelled")
+                                    {
+                                        <span class="badge bg-secondary">Cancelled</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light text-dark">No Membership</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (member.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Deactivated</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("MemberDetails", "Admin", new { id = member.UserId })"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <i class="bi bi-people fs-1 text-muted d-block mb-3"></i>
+                                <h5>No members found</h5>
+                                <p class="text-muted">Try adjusting your search or filter criteria.</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Summary -->
+<div class="alert alert-info mt-4">
+    <i class="bi bi-info-circle me-2"></i>
+    Showing <strong>@Model.Count</strong> member(s)
+</div>

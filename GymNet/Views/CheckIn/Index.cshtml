@@ -1,0 +1,219 @@
+﻿@model GymNet.ViewModels.CheckInViewModel
+@{
+    ViewBag.Title = "Check In";
+    ViewBag.Active = "CheckIn";
+    Layout = "~/Views/Shared/_MemberLayout.cshtml";
+}
+
+<h2 class="fw-bold mb-1">Gym Check-In</h2>
+<p class="text-muted mb-4">Scan the QR code at the gym entrance to check in.</p>
+
+<div class="row g-4">
+    <!-- Status Card -->
+    <div class="col-md-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Your Status</h5>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">Member</small>
+                    <strong>@Model.FullName</strong>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">Membership Plan</small>
+                    <strong>@Model.MembershipPlan</strong>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">Membership Status</small>
+                    @if (Model.MembershipStatus == "Active")
+                    {
+                        <span class="badge bg-success">Active</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">@Model.MembershipStatus</span>
+                    }
+                </div>
+
+                @if (Model.MembershipEndDate.HasValue)
+                {
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Valid Until</small>
+                        <strong>@Model.MembershipEndDate.Value.ToString("dd MMM yyyy")</strong>
+                        @{
+                            var daysLeft = (Model.MembershipEndDate.Value - DateTime.Now).Days;
+                            if (daysLeft > 0)
+                            {
+                                <span class="badge bg-success ms-2">@daysLeft days left</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger ms-2">Expired</span>
+                            }
+                        }
+                    </div>
+                }
+
+                <hr>
+
+                @if (Model.CanCheckIn)
+                {
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle me-2"></i>
+                        @Model.Message
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        @Model.Message
+                    </div>
+
+                    <a href="@Url.Action("Plans", "Membership")" class="btn btn-danger w-100">
+                        <i class="bi bi-grid me-1"></i>View Membership Plans
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Scanner Card -->
+    <div class="col-md-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-body p-4 text-center">
+                @if (Model.CanCheckIn)
+                {
+                    <h5 class="fw-bold mb-3">Scan QR Code</h5>
+                    <p class="text-muted mb-4">Point your camera at the QR code displayed at the gym entrance.</p>
+
+                    <!-- QR Scanner -->
+                    <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
+
+                    <!-- Manual Entry -->
+                    <div class="mt-4">
+                        <p class="text-muted mb-2">Or enter the QR code manually:</p>
+                        <div class="input-group mb-3">
+                            <input type="text" id="manualQRCode" class="form-control" placeholder="Enter QR code..." />
+                            <button class="btn btn-danger" type="button" onclick="processManualQR()">
+                                <i class="bi bi-check2-circle me-1"></i>Submit
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Result Message -->
+                    <div id="resultMessage" class="mt-3"></div>
+                }
+                else
+                {
+                    <div class="d-flex flex-column align-items-center justify-content-center h-100">
+                        <i class="bi bi-qr-code-scan text-muted" style="font-size: 80px;"></i>
+                        <h5 class="text-muted mt-3">Scanner Unavailable</h5>
+                        <p class="text-muted">Please resolve your membership issues to access the scanner.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QR Code Scanner Library -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<script>
+    let html5QrCode;
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // Stop scanning
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                console.log("QR Code scanning stopped.");
+            }).catch((err) => {
+                console.log("Error stopping scanner: ", err);
+            });
+        }
+
+        // Process the QR code
+        processQRCode(decodedText);
+    }
+
+    function onScanError(errorMessage) {
+        // Ignore errors - they happen frequently during scanning
+        console.log(errorMessage);
+    }
+
+    function startScanner() {
+        html5QrCode = new Html5Qrcode("qr-reader");
+
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0
+        };
+
+        html5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            onScanSuccess,
+            onScanError
+        ).catch((err) => {
+            console.error("Error starting scanner: ", err);
+            document.getElementById('resultMessage').innerHTML =
+                '<div class="alert alert-danger">Failed to start camera. Please ensure camera permissions are granted.</div>';
+        });
+    }
+
+    function processQRCode(qrContent) {
+        fetch('@Url.Action("ProcessQRCode", "CheckIn")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': '@Html.AntiForgeryToken().ToString()'
+            },
+            body: new URLSearchParams({
+                'qrCodeContent': qrContent,
+                '__RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultDiv = document.getElementById('resultMessage');
+            if (data.Success) {
+                resultDiv.innerHTML = '<div class="alert alert-success">' + data.Message + '</div>';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                resultDiv.innerHTML = '<div class="alert alert-danger">' + data.Message + '</div>';
+                // Restart scanner after error
+                setTimeout(() => {
+                    startScanner();
+                }, 3000);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('resultMessage').innerHTML =
+                '<div class="alert alert-danger">An error occurred. Please try again.</div>';
+        });
+    }
+
+    function processManualQR() {
+        const qrContent = document.getElementById('manualQRCode').value.trim();
+        if (qrContent) {
+            processQRCode(qrContent);
+        } else {
+            alert('Please enter a QR code.');
+        }
+    }
+
+    // Start scanner on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        @if (Model.CanCheckIn)
+        {
+            <text>startScanner();</text>
+        }
+    });
+</script>

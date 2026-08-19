@@ -1,0 +1,135 @@
+﻿@model GymNet.ViewModels.PaymentViewModel
+@{
+    ViewBag.Title = "Payment";
+    Layout = "~/Views/Shared/_MemberLayout.cshtml";
+}
+
+<h2 class="fw-bold mb-4">Complete Your Payment</h2>
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h5 class="mb-4">Payment Details</h5>
+
+                @using (Html.BeginForm("Payment", "Membership", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.MembershipPlanId)
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Select Payment Method</label>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-check card p-3">
+                                    @Html.RadioButtonFor(m => m.PaymentMethod, "Credit Card", new { @class = "form-check-input", id = "creditCard" })
+                                    <label class="form-check-label" for="creditCard">
+                                        <i class="bi bi-credit-card me-2"></i>Credit Card
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check card p-3">
+                                    @Html.RadioButtonFor(m => m.PaymentMethod, "Debit Card", new { @class = "form-check-input", id = "debitCard" })
+                                    <label class="form-check-label" for="debitCard">
+                                        <i class="bi bi-credit-card-2-front me-2"></i>Debit Card
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check card p-3">
+                                    @Html.RadioButtonFor(m => m.PaymentMethod, "EFT", new { @class = "form-check-input", id = "eft" })
+                                    <label class="form-check-label" for="eft">
+                                        <i class="bi bi-bank me-2"></i>EFT Transfer
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        @Html.ValidationMessageFor(m => m.PaymentMethod, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            @Html.LabelFor(m => m.CardHolderName, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.CardHolderName, new { @class = "form-control", placeholder = "John Doe" })
+                            @Html.ValidationMessageFor(m => m.CardHolderName, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-md-8">
+                            @Html.LabelFor(m => m.CardNumber, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.CardNumber, new { @class = "form-control", placeholder = "1234567890123456", maxlength = "16" })
+                            @Html.ValidationMessageFor(m => m.CardNumber, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-md-2">
+                            @Html.LabelFor(m => m.ExpiryDate, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.ExpiryDate, new { @class = "form-control", placeholder = "MM/YY", maxlength = "5" })
+                            @Html.ValidationMessageFor(m => m.ExpiryDate, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-md-2">
+                            @Html.LabelFor(m => m.CVV, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.CVV, new { @class = "form-control", placeholder = "123", maxlength = "4", type = "password" })
+                            @Html.ValidationMessageFor(m => m.CVV, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-md-6">
+                            @Html.LabelFor(m => m.BankName, new { @class = "form-label" })
+                            @Html.DropDownListFor(m => m.BankName, new SelectListItem[]
+                            {
+                                new SelectListItem { Text = "Select Bank", Value = "" },
+                                new SelectListItem { Text = "Standard Bank", Value = "Standard Bank" },
+                                new SelectListItem { Text = "FNB", Value = "FNB" },
+                                new SelectListItem { Text = "ABSA", Value = "ABSA" },
+                                new SelectListItem { Text = "Nedbank", Value = "Nedbank" },
+                                new SelectListItem { Text = "Capitec", Value = "Capitec" },
+                                new SelectListItem { Text = "African Bank", Value = "African Bank" }
+                            }, new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.BankName, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-md-6">
+                            @Html.LabelFor(m => m.AccountNumber, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.AccountNumber, new { @class = "form-control", placeholder = "1234567890" })
+                            @Html.ValidationMessageFor(m => m.AccountNumber, "", new { @class = "text-danger small" })
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        This is a demo payment system. No real transactions will be processed.
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 py-2 mt-3">Pay R@(ViewBag.Price)</button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="fw-bold">Order Summary</h5>
+                <hr>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Plan:</span>
+                    <strong>@ViewBag.PlanName</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Duration:</span>
+                    <strong>@ViewBag.DurationInMonths months</strong>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold">Total:</span>
+                    <h5 class="fw-bold text-danger">R@(ViewBag.Price)</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

@@ -1,0 +1,284 @@
+﻿@model List<GymNet.ViewModels.PaymentHistoryViewModel>
+@{
+    ViewBag.Title = "Payment History";
+    ViewBag.Active = "Payments";
+    Layout = "~/Views/Shared/_MemberLayout.cshtml";
+}
+
+<h2 class="fw-bold mb-1">Payment History</h2>
+<p class="text-muted mb-4">View all your gym membership payments and subscription details.</p>
+
+@if (Model.Any())
+{
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success mb-3">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                    <h6 class="text-muted mb-1">Total Paid</h6>
+                    <h4 class="fw-bold">R@(Model.Where(p => p.Status == "Completed").Sum(p => p.Amount).ToString("F2"))</h4>
+                    <p class="text-muted small mb-0">Across @Model.Count(p => p.Status == "Completed") payment(s)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary mb-3">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <h6 class="text-muted mb-1">Latest Payment</h6>
+                    @{
+                        var latestPayment = Model.FirstOrDefault();
+                        if (latestPayment != null)
+                        {
+                            <h4 class="fw-bold">R@(latestPayment.Amount.ToString("F2"))</h4>
+                            <p class="text-muted small mb-0">@latestPayment.PaymentDate.ToString("dd MMM yyyy")</p>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger mb-3">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <h6 class="text-muted mb-1">Current Status</h6>
+                    @{
+                        var currentMembership = Model.FirstOrDefault(p => p.MembershipEndDate > DateTime.Now);
+                        if (currentMembership != null)
+                        {
+                            var daysRemaining = (currentMembership.MembershipEndDate - DateTime.Now).Days;
+                            <h4 class="fw-bold">
+                                @if (daysRemaining > 0)
+                                {
+                                    <span class="text-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="text-danger">Expired</span>
+                                }
+                            </h4>
+                            <p class="text-muted small mb-0">
+                                @daysRemaining days remaining
+                            </p>
+                        }
+                        else
+                        {
+                            <h4 class="fw-bold text-warning">No Active Plan</h4>
+                            <p class="text-muted small mb-0">Purchase a membership</p>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment History Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0 fw-bold">
+                <i class="bi bi-receipt me-2 text-danger"></i>
+                All Transactions
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Transaction Ref</th>
+                            <th>Date</th>
+                            <th>Plan</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Subscription Period</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var payment in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <small class="text-muted">@payment.TransactionReference</small>
+                                </td>
+                                <td>@payment.PaymentDate.ToString("dd MMM yyyy")</td>
+                                <td>@payment.MembershipPlanName</td>
+                                <td class="fw-bold">R@(payment.Amount.ToString("F2"))</td>
+                                <td>
+                                    @if (payment.PaymentMethod == "Credit Card")
+                                    {
+                                        <i class="bi bi-credit-card me-1"></i>
+                                    }
+                                    else if (payment.PaymentMethod == "Debit Card")
+                                    {
+                                        <i class="bi bi-credit-card-2-front me-1"></i>
+                                    }
+                                    else if (payment.PaymentMethod == "EFT")
+                                    {
+                                        <i class="bi bi-bank me-1"></i>
+                                    }
+                                    @payment.PaymentMethod
+                                </td>
+                                <td>
+                                    @if (payment.Status == "Completed")
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>Completed
+                                        </span>
+                                    }
+                                    else if (payment.Status == "Pending")
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-clock me-1"></i>Pending
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-x-circle me-1"></i>@payment.Status
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <small>
+                                            <strong>Start:</strong> @payment.MembershipStartDate.ToString("dd MMM yyyy")
+                                        </small>
+                                        <small>
+                                            <strong>End:</strong> @payment.MembershipEndDate.ToString("dd MMM yyyy")
+                                        </small>
+                                        @if (payment.MembershipEndDate > DateTime.Now)
+                                        {
+                                            <span class="badge bg-success mt-1">
+                                                @((payment.MembershipEndDate - DateTime.Now).Days) days left
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary mt-1">Expired</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#paymentModal@(payment.Id)">
+                                        <i class="bi bi-eye me-1"></i>Details
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Detail Modals -->
+    foreach (var payment in Model)
+    {
+        <div class="modal fade" id="paymentModal@(payment.Id)" tabindex="-1"
+             aria-labelledby="paymentModalLabel@(payment.Id)" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold" id="paymentModalLabel@(payment.Id)">
+                            <i class="bi bi-receipt me-2 text-danger"></i>
+                            Payment Details
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-center mb-4">
+                            <div class="display-6 fw-bold text-success mb-2">
+                                R@(payment.Amount.ToString("F2"))
+                            </div>
+                            <span class="badge bg-success">@payment.Status</span>
+                        </div>
+
+                        <hr>
+
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Transaction Reference</small>
+                                <strong>@payment.TransactionReference</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Payment Date</small>
+                                <strong>@payment.PaymentDate.ToString("dd MMM yyyy")</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Payment Method</small>
+                                <strong>@payment.PaymentMethod</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Bank</small>
+                                <strong>@payment.BankName</strong>
+                            </div>
+                            @if (!string.IsNullOrEmpty(payment.CardHolderName))
+                            {
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Card Holder</small>
+                                    <strong>@payment.CardHolderName</strong>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(payment.MaskedCardNumber))
+                            {
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Card Number</small>
+                                    <strong>@payment.MaskedCardNumber</strong>
+                                </div>
+                            }
+
+                            <div class="col-12 mt-3">
+                                <hr>
+                                <h6 class="fw-bold">Subscription Details</h6>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Plan</small>
+                                <strong>@payment.MembershipPlanName</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Amount</small>
+                                <strong>R@(payment.Amount.ToString("F2"))</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Start Date</small>
+                                <strong>@payment.MembershipStartDate.ToString("dd MMM yyyy")</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">End Date</small>
+                                <strong>@payment.MembershipEndDate.ToString("dd MMM yyyy")</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <!-- Empty State -->
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-receipt fs-1 text-muted d-block mb-3"></i>
+            <h4>No Payments Found</h4>
+            <p class="text-muted mb-4">You haven't made any payments yet.</p>
+            <a href="@Url.Action("Plans", "Membership")" class="btn btn-danger">
+                <i class="bi bi-grid me-1"></i>View Membership Plans
+            </a>
+        </div>
+    </div>
+}

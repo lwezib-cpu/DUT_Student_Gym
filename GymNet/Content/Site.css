@@ -1,0 +1,110 @@
+﻿/* ===== GymNet Custom Styles ===== */
+
+body {
+    padding-top: 56px; /* offset for fixed navbar */
+    scroll-behavior: smooth;
+}
+
+section h2 {
+    letter-spacing: -0.5px;
+}
+
+.navbar-brand {
+    letter-spacing: 1px;
+}
+
+/* Smooth section anchor offset so fixed navbar doesn't cover headings */
+section[id] {
+    scroll-margin-top: 70px;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+    .card:hover {
+        transform: translateY(-4px);
+    }
+
+
+/* ===== Dashboard Layout ===== */
+.dashboard-topbar {
+    height: 60px;
+    z-index: 1030;
+}
+
+.dashboard-sidebar {
+    width: 250px;
+    background-color: #212529;
+}
+
+@media (min-width: 992px) {
+    .dashboard-sidebar {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        bottom: 0;
+        z-index: 1020;
+        visibility: visible;
+    }
+
+    .dashboard-content {
+        margin-left: 250px;
+    }
+}
+
+.dashboard-content {
+    margin-top: 60px;
+    padding: 30px;
+    min-height: calc(100vh - 60px);
+    background-color: #f8f9fa;
+}
+
+.dashboard-nav .nav-link {
+    color: #ced4da;
+    padding: 12px 20px;
+    border-left: 3px solid transparent;
+}
+
+    .dashboard-nav .nav-link:hover:not(.disabled) {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: #fff;
+    }
+
+    .dashboard-nav .nav-link.active {
+        color: #fff;
+        border-left-color: #dc3545;
+        background-color: rgba(220, 53, 69, 0.15);
+    }
+
+    .dashboard-nav .nav-link.disabled {
+        color: #6c757d;
+        cursor: not-allowed;
+    }
+
+.stat-card {
+    border: none;
+    border-radius: 12px;
+}
+
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+/* Avatar circle */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    flex-shrink: 0;
+}

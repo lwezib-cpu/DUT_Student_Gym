@@ -1,0 +1,226 @@
+﻿@model GymNet.ViewModels.AdminMemberDetailsViewModel
+@{
+    ViewBag.Title = "Member Details";
+    ViewBag.Active = "Members";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Back button -->
+<a href="@Url.Action("Members", "Admin")" class="btn btn-outline-secondary mb-3">
+    <i class="bi bi-arrow-left me-1"></i>Back to Members
+</a>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">@Model.FullName</h2>
+        <p class="text-muted mb-0">Member details and history.</p>
+    </div>
+    <div>
+        <a href="@Url.Action("EditMember", "Admin", new { id = Model.UserId })" class="btn btn-primary">
+            <i class="bi bi-pencil me-1"></i>Edit Details
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Profile Card -->
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center p-4">
+                <div class="avatar-circle bg-danger bg-opacity-10 text-danger mx-auto mb-3"
+                     style="width: 80px; height: 80px; font-size: 32px;">
+                    @Model.FullName.Substring(0, 1).ToUpper()
+                </div>
+                <h4 class="fw-bold mb-1">@Model.FullName</h4>
+                <p class="text-muted mb-3">@Model.Email</p>
+
+                <hr>
+
+                <div class="text-start">
+                    <p class="mb-2">
+                        <i class="bi bi-telephone me-2 text-danger"></i>
+                        @Model.PhoneNumber
+                    </p>
+                    <p class="mb-2">
+                        <i class="bi bi-gender-ambiguous me-2 text-danger"></i>
+                        @Model.Gender
+                    </p>
+                    <p class="mb-2">
+                        <i class="bi bi-calendar me-2 text-danger"></i>
+                        Born: @Model.DateOfBirth.ToString("dd MMM yyyy")
+                    </p>
+                    <p class="mb-2">
+                        <i class="bi bi-geo-alt me-2 text-danger"></i>
+                        @Model.Address
+                    </p>
+                    <p class="mb-0">
+                        <i class="bi bi-shield-check me-2 text-danger"></i>
+                        Account Status:
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Deactivated</span>
+                        }
+                    </p>
+                </div>
+
+                <hr>
+
+                <!-- Account Actions -->
+                <div class="d-grid gap-2">
+                    @using (Html.BeginForm("ToggleAccountStatus", "Admin", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("id", Model.UserId)
+                        if (Model.IsActive)
+                        {
+                            <button type="submit" class="btn btn-outline-danger w-100"
+                                    onclick="return confirm('Are you sure you want to deactivate this account?');">
+                                <i class="bi bi-person-x me-1"></i>Deactivate Account
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit" class="btn btn-outline-success w-100">
+                                <i class="bi bi-person-check me-1"></i>Activate Account
+                            </button>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Membership and Payment History -->
+    <div class="col-md-8">
+        <!-- Membership History -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-patch-check me-2 text-danger"></i>
+                    Membership History
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.Memberships.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Plan</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var membership in Model.Memberships)
+                                {
+                                    <tr>
+                                        <td>@membership.PlanName</td>
+                                        <td>@membership.StartDate.ToString("dd MMM yyyy")</td>
+                                        <td>@membership.EndDate.ToString("dd MMM yyyy")</td>
+                                        <td>
+                                            @if (membership.Status == "Active")
+                                            {
+                                                <span class="badge bg-success">Active</span>
+                                            }
+                                            else if (membership.Status == "Expired")
+                                            {
+                                                <span class="badge bg-warning text-dark">Expired</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">@membership.Status</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (membership.Status == "Active")
+                                            {
+                                                using (Html.BeginForm("CancelMembership", "Admin", FormMethod.Post))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    @Html.Hidden("membershipId", membership.Id)
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                            onclick="return confirm('Are you sure you want to cancel this membership?');">
+                                                        <i class="bi bi-x-circle me-1"></i>Cancel
+                                                    </button>
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-center text-muted py-4 mb-0">No membership history found.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Payment History -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-credit-card me-2 text-danger"></i>
+                    Payment History
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.Payments.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Reference</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var payment in Model.Payments)
+                                {
+                                    <tr>
+                                        <td>@payment.PaymentDate.ToString("dd MMM yyyy")</td>
+                                        <td class="fw-bold">R@(payment.Amount.ToString("F2"))</td>
+                                        <td>@payment.PaymentMethod</td>
+                                        <td><small class="text-muted">@payment.TransactionReference</small></td>
+                                        <td>
+                                            @if (payment.Status == "Completed")
+                                            {
+                                                <span class="badge bg-success">Completed</span>
+                                            }
+                                            else if (payment.Status == "Pending")
+                                            {
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">@payment.Status</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-center text-muted py-4 mb-0">No payment history found.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

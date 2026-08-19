@@ -1,0 +1,43 @@
+﻿@model GymNet.ViewModels.SelectMembershipViewModel
+@{
+    ViewBag.Title = "Confirm Membership Selection";
+    Layout = "~/Views/Shared/_MemberLayout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <i class="bi bi-check-circle-fill text-danger fs-1 mb-3"></i>
+                    <h3 class="fw-bold mb-2">Confirm Your Selection</h3>
+                    <p class="text-muted mb-4">You are selecting the following membership plan:</p>
+
+                    <div class="bg-light p-3 rounded mb-4 text-start">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Plan Name:</span>
+                            <strong>@Model.PlanName</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Duration:</span>
+                            <strong>@Model.DurationInMonths Months</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Price:</span>
+                            <strong class="text-danger">R@(Model.Price.ToString("F2"))</strong>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="@Url.Action("Payment", "Membership", new { planId = Model.PlanId })" class="btn btn-danger py-2">
+                            Proceed to Payment
+                        </a>
+                        <a href="@Url.Action("Plans", "Membership")" class="btn btn-outline-secondary">
+                            Choose a Different Plan
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

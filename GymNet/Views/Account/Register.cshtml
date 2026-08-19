@@ -1,0 +1,96 @@
+﻿@model GymNet.ViewModels.RegisterViewModel
+@{
+    ViewBag.Title = "Register";
+}
+
+<section class="py-5" style="margin-top: 40px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4 p-md-5">
+                        <h2 class="fw-bold text-center mb-1">Create Your Account</h2>
+                        <p class="text-muted text-center mb-4">Join GymNet and start your fitness journey today.</p>
+
+                        @using (Html.BeginForm("Register", "Account", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    @Html.LabelFor(m => m.FirstName, new { @class = "form-label" })
+                                    @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control", placeholder = "John" })
+                                    @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger small" })
+                                </div>
+                                <div class="col-md-6">
+                                    @Html.LabelFor(m => m.LastName, new { @class = "form-label" })
+                                    @Html.TextBoxFor(m => m.LastName, new { @class = "form-control", placeholder = "Doe" })
+                                    @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger small" })
+                                </div>
+
+                                <div class="col-md-6">
+                                    @Html.LabelFor(m => m.Email, new { @class = "form-label" })
+                                    @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "you@example.com", type = "email" })
+                                    @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                                </div>
+                                <div class="col-md-6">
+                                    @Html.LabelFor(m => m.PhoneNumber, new { @class = "form-label" })
+                                    @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "0821234567" })
+                                    @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger small" })
+                                </div>
+
+                                <div class="col-md-6">
+                                    @Html.LabelFor(m => m.DateOfBirth, new { @class = "form-label" })
+                                    @Html.TextBoxFor(m => m.DateOfBirth, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                                    @Html.ValidationMessageFor(m => m.DateOfBirth, "", new { @class = "text-danger small" })
+                                </div>
+                                <div class="col-md-6">
+                                    @Html.LabelFor(m => m.Gender, new { @class = "form-label" })
+                                    @Html.DropDownListFor(m => m.Gender,
+                                        new System.Web.Mvc.SelectListItem[]
+                                        {
+                                            new System.Web.Mvc.SelectListItem { Text = "Select gender", Value = "" },
+                                            new System.Web.Mvc.SelectListItem { Text = "Male", Value = "Male" },
+                                            new System.Web.Mvc.SelectListItem { Text = "Female", Value = "Female" },
+                                            new System.Web.Mvc.SelectListItem { Text = "Other", Value = "Other" }
+                                        }, new { @class = "form-select" })
+                                    @Html.ValidationMessageFor(m => m.Gender, "", new { @class = "text-danger small" })
+                                </div>
+
+                                <div class="col-12">
+                                    @Html.LabelFor(m => m.Address, new { @class = "form-label" })
+                                    @Html.TextBoxFor(m => m.Address, new { @class = "form-control", placeholder = "123 Main Street, City" })
+                                    @Html.ValidationMessageFor(m => m.Address, "", new { @class = "text-danger small" })
+                                </div>
+
+                                <div class="col-md-6">
+                                    @Html.LabelFor(m => m.Password, new { @class = "form-label" })
+                                    @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+                                    @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small" })
+                                </div>
+                                <div class="col-md-6">
+                                    @Html.LabelFor(m => m.ConfirmPassword, new { @class = "form-label" })
+                                    @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control" })
+                                    @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger small" })
+                                </div>
+
+                                <div class="col-12 mt-4">
+                                    <button type="submit" class="btn btn-danger w-100 py-2">Create Account</button>
+                                </div>
+                            </div>
+                        }
+
+                        <p class="text-center text-muted mt-4 mb-0">
+                            Already have an account? @Html.ActionLink("Login here", "Login", "Account")
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

@@ -1,0 +1,115 @@
+﻿@model GymNet.Models.MemberMembership
+@{
+    ViewBag.Title = "Payment Receipt";
+    Layout = "~/Views/Shared/_MemberLayout.cshtml";
+    var payment = Model.Payments.FirstOrDefault();
+}
+
+<style>
+    media print {
+        /* Hide navbar, sidebar, and print buttons during printing */
+        .dashboard-topbar, .dashboard-sidebar, .no-print {
+            display: none !important;
+        }
+        .dashboard-content {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
+
+<div class="container my-4">
+    <!-- Non-printable Top Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <a href="@Url.Action("Dashboard", "Member")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        </a>
+        <button onclick="window.print()" class="btn btn-danger">
+            <i class="bi bi-printer me-1"></i> Print Receipt
+        </button>
+    </div>
+
+    <!-- Receipt Card -->
+    <div class="card shadow-sm border p-4">
+        <div class="card-body">
+            <!-- Receipt Header -->
+            <div class="row mb-4">
+                <div class="col-6">
+                    <h2 class="fw-bold">GYM<span class="text-danger">NET</span></h2>
+                    <p class="text-muted small mb-0">GymNet Fitness & Recreation</p>
+                    <p class="text-muted small mb-0">Durban University of Technology</p>
+                </div>
+                <div class="col-6 text-end">
+                    <h4 class="fw-bold text-success mb-1"><i class="bi bi-check-circle-fill me-1"></i> PAID</h4>
+                    <p class="text-muted small mb-0"><strong>Ref:</strong> @(payment?.TransactionReference ?? "N/A")</p>
+                    <p class="text-muted small mb-0"><strong>Date:</strong> @(payment?.PaymentDate.ToString("yyyy-MM-dd HH:mm") ?? DateTime.Now.ToString("yyyy-MM-dd"))</p>
+                </div>
+            </div>
+
+            <hr />
+
+            <!-- Customer & Payment Summary -->
+            <div class="row my-4">
+                <div class="col-6">
+                    <h6 class="fw-bold text-muted text-uppercase small">Billed To</h6>
+                    <p class="mb-1"><strong>@Model.User.FirstName @Model.User.LastName</strong></p>
+                    <p class="mb-1 small text-muted">@Model.User.Email</p>
+                    <p class="mb-0 small text-muted">@Model.User.PhoneNumber</p>
+                </div>
+                <div class="col-6 text-end">
+                    <h6 class="fw-bold text-muted text-uppercase small">Payment Method</h6>
+                    <p class="mb-1"><strong>@(payment?.PaymentMethod ?? "Card")</strong></p>
+                    @if (!string.IsNullOrEmpty(payment?.CardNumber))
+                    {
+                        <p class="mb-0 small text-muted">Card Ending: @payment.CardNumber</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Table of Items -->
+            <div class="table-responsive my-4">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Description</th>
+                            <th class="text-center">Duration</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong>@Model.MembershipPlan.Name</strong><br />
+                                <small class="text-muted">@Model.MembershipPlan.Description</small>
+                            </td>
+                            <td class="text-center">@Model.MembershipPlan.DurationInMonths Months</td>
+                            <td class="text-end">R@(payment?.Amount.ToString("F2") ?? Model.MembershipPlan.Price.ToString("F2"))</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Total Calculation -->
+            <div class="row justify-content-end">
+                <div class="col-md-5">
+                    <div class="d-flex justify-content-between py-2 border-top border-bottom fs-5 fw-bold">
+                        <span>Total Paid:</span>
+                        <span class="text-danger">R@(payment?.Amount.ToString("F2") ?? Model.MembershipPlan.Price.ToString("F2"))</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Membership Validity Notice -->
+            <div class="alert alert-light border mt-4">
+                <h6 class="fw-bold"><i class="bi bi-calendar-check me-2"></i> Membership Period</h6>
+                <p class="small text-muted mb-0">
+                    Your membership is active from <strong>@Model.StartDate.ToString("dd MMM yyyy")</strong> to <strong>@Model.EndDate.ToString("dd MMM yyyy")</strong>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,267 @@
+﻿@{
+    ViewBag.Title = "Home";
+}
+
+<!-- ============ HERO SECTION ============ -->
+<section id="hero" class="d-flex align-items-center text-white"
+         style="min-height:100vh; background:linear-gradient(rgba(0,0,0,0.65),rgba(0,0,0,0.65)), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;">
+    <div class="container text-center">
+        <h1 class="display-3 fw-bold">Transform Your Body. Transform Your Life.</h1>
+        <p class="lead col-lg-8 mx-auto mb-4">
+            Join GymNet and get access to top-tier equipment, structured membership
+            plans, and a community that keeps you accountable.
+        </p>
+
+        @if (!Request.IsAuthenticated)
+        {
+            <a href="@Url.Action("Plans", "Membership")" class="btn btn-danger btn-lg px-4 me-2">View Memberships</a>
+            <a href="@Url.Action("Register", "Account")" class="btn btn-outline-light btn-lg px-4">Join Now</a>
+        }
+        else if (User.IsInRole("Member"))
+        {
+            <a href="@Url.Action("Plans", "Membership")" class="btn btn-danger btn-lg px-4 me-2">View Memberships</a>
+            <a href="@Url.Action("Dashboard", "Member")" class="btn btn-outline-light btn-lg px-4">My Dashboard</a>
+        }
+        else if (User.IsInRole("Admin"))
+        {
+            <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-danger btn-lg px-4 me-2">Admin Dashboard</a>
+            <a href="@Url.Action("Plans", "Membership")" class="btn btn-outline-light btn-lg px-4">View Plans</a>
+        }
+    </div>
+</section>
+
+<!-- ============ ABOUT SECTION ============ -->
+<section id="about" class="py-5 py-lg-6">
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=900&q=80"
+                     alt="Inside GymNet" class="img-fluid rounded-4 shadow" />
+            </div>
+            <div class="col-lg-6">
+                <h6 class="text-danger fw-bold text-uppercase">About Us</h6>
+                <h2 class="fw-bold mb-3">A Gym Built Around Your Goals</h2>
+                <p class="text-muted">
+                    GymNet was founded on a simple idea: fitness should be accessible,
+                    structured, and results-driven. Whether you're just starting out or
+                    training for a competition, our facility and membership system are
+                    designed to support every stage of your journey.
+                </p>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i> Modern, fully-equipped facility</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i> Flexible membership plans</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i> Clean, safe, and welcoming environment</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ MEMBERSHIP PLANS SECTION ============ -->
+<section id="memberships" class="py-5 py-lg-6 bg-light">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h6 class="text-danger fw-bold text-uppercase">Pricing</h6>
+            <h2 class="fw-bold">Membership Plans</h2>
+            <p class="text-muted col-lg-6 mx-auto">
+                Choose the plan that fits your lifestyle. All plans include full access to our facilities.
+            </p>
+        </div>
+        <div class="row g-4">
+            <!-- DUT Semester Plan -->
+            <div class="col-md-4">
+                <div class="card h-100 shadow border-0 border-danger" style="border-top:4px solid #dc3545;">
+                    <div class="card-body text-center p-4">
+                        <span class="badge bg-danger mb-2">Best Value</span>
+                        <h5 class="fw-bold">DUT Semester Plan</h5>
+                        <h2 class="fw-bold my-3">R250<span class="fs-6 text-muted">/semester</span></h2>
+                        <p class="text-muted mb-4">
+                            Full access to all gym facilities for one semester (6 months).
+                            Includes access to all equipment, locker rooms, and group classes.
+                        </p>
+                        <ul class="list-unstyled text-muted mb-4 text-start">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i>6 months unlimited access</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i>All gym equipment</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i>Locker room access</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i>Group classes included</li>
+                        </ul>
+                        @if (!Request.IsAuthenticated)
+                        {
+                            <a href="@Url.Action("Register", "Account")" class="btn btn-danger w-100">Register to Join</a>
+                        }
+                        else if (User.IsInRole("Member"))
+                        {
+                            <a href="@Url.Action("SelectPlan", "Membership", new { id = 1 })" class="btn btn-danger w-100">Choose This Plan</a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Plans", "Membership")" class="btn btn-danger w-100">View All Plans</a>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Plan -->
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center p-4">
+                        <h5 class="fw-bold">Monthly Plan</h5>
+                        <h2 class="fw-bold my-3">R80<span class="fs-6 text-muted">/mo</span></h2>
+                        <p class="text-muted mb-4">
+                            Month-to-month membership with full gym access.
+                            Flexible option for those who don't want long-term commitment.
+                        </p>
+                        <ul class="list-unstyled text-muted mb-4 text-start">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i>1 month access</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i>All gym equipment</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i>Locker room access</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i>Flexible renewal</li>
+                        </ul>
+                        @if (!Request.IsAuthenticated)
+                        {
+                            <a href="@Url.Action("Register", "Account")" class="btn btn-outline-dark w-100">Register to Join</a>
+                        }
+                        else if (User.IsInRole("Member"))
+                        {
+                            <a href="@Url.Action("SelectPlan", "Membership", new { id = 2 })" class="btn btn-outline-dark w-100">Choose This Plan</a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Plans", "Membership")" class="btn btn-outline-dark w-100">View All Plans</a>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Annual Plan -->
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center p-4">
+                        <span class="badge bg-success mb-2">Save 30%</span>
+                        <h5 class="fw-bold">Annual Plan</h5>
+                        <h2 class="fw-bold my-3">R650<span class="fs-6 text-muted">/year</span></h2>
+                        <p class="text-muted mb-4">
+                            Best value! Full year of unlimited gym access.
+                            Save 30% compared to monthly plan. Includes 2 free personal training sessions.
+                        </p>
+                        <ul class="list-unstyled text-muted mb-4 text-start">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i>12 months access</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i>All gym equipment</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i>2 Free PT sessions</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i>Priority booking</li>
+                        </ul>
+                        @if (!Request.IsAuthenticated)
+                        {
+                            <a href="@Url.Action("Register", "Account")" class="btn btn-outline-dark w-100">Register to Join</a>
+                        }
+                        else if (User.IsInRole("Member"))
+                        {
+                            <a href="@Url.Action("SelectPlan", "Membership", new { id = 3 })" class="btn btn-outline-dark w-100">Choose This Plan</a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Plans", "Membership")" class="btn btn-outline-dark w-100">View All Plans</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ WHY CHOOSE US SECTION ============ -->
+<section id="why-us" class="py-5 py-lg-6">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h6 class="text-danger fw-bold text-uppercase">Why GymNet</h6>
+            <h2 class="fw-bold">Why Choose Us</h2>
+        </div>
+        <div class="row g-4 text-center">
+            <div class="col-md-3">
+                <i class="bi bi-clock-history display-5 text-danger"></i>
+                <h5 class="fw-bold mt-3">Flexible Hours</h5>
+                <p class="text-muted">Open early, closes late — train on your schedule.</p>
+            </div>
+            <div class="col-md-3">
+                <i class="bi bi-award display-5 text-danger"></i>
+                <h5 class="fw-bold mt-3">Proven Results</h5>
+                <p class="text-muted">Structured plans that keep members progressing.</p>
+            </div>
+            <div class="col-md-3">
+                <i class="bi bi-shield-check display-5 text-danger"></i>
+                <h5 class="fw-bold mt-3">Safe & Clean</h5>
+                <p class="text-muted">Hygiene and safety standards you can rely on.</p>
+            </div>
+            <div class="col-md-3">
+                <i class="bi bi-people display-5 text-danger"></i>
+                <h5 class="fw-bold mt-3">Real Community</h5>
+                <p class="text-muted">A supportive environment that keeps you motivated.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ CALL TO ACTION SECTION ============ -->
+@if (!Request.IsAuthenticated)
+{
+    <section id="cta" class="py-5 py-lg-6 bg-danger text-white">
+        <div class="container py-5 text-center">
+            <h2 class="fw-bold mb-3">Ready to Start Your Fitness Journey?</h2>
+            <p class="lead mb-4 col-lg-6 mx-auto">
+                Join GymNet today and get access to top-tier equipment, expert guidance,
+                and a community that supports your goals.
+            </p>
+            <a href="@Url.Action("Register", "Account")" class="btn btn-light btn-lg px-5 me-3">Join Now</a>
+            <a href="@Url.Action("Plans", "Membership")" class="btn btn-outline-light btn-lg px-5">View Plans</a>
+        </div>
+    </section>
+}
+
+<!-- ============ CONTACT SECTION ============ -->
+<section id="contact" class="py-5 py-lg-6 bg-light">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h6 class="text-danger fw-bold text-uppercase">Get In Touch</h6>
+            <h2 class="fw-bold">Contact Us</h2>
+            <p class="text-muted">
+                Have questions about our memberships or facilities? We're here to help!
+            </p>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <form>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" placeholder="Your name" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" placeholder="you@example.com" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" placeholder="0821234567" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Subject</label>
+                            <select class="form-select">
+                                <option>General Inquiry</option>
+                                <option>Membership Questions</option>
+                                <option>Technical Support</option>
+                                <option>Feedback</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Message</label>
+                            <textarea class="form-control" rows="4" placeholder="How can we help?"></textarea>
+                        </div>
+                        <div class="col-12 text-center">
+                            <button type="submit" class="btn btn-danger px-5">Send Message</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>

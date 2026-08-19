@@ -1,0 +1,172 @@
+﻿@model List<GymNet.ViewModels.CheckInHistoryViewModel>
+@{
+    ViewBag.Title = "Check-In History";
+    ViewBag.Active = "CheckInHistory";
+    Layout = "~/Views/Shared/_MemberLayout.cshtml";
+}
+
+<h2 class="fw-bold mb-1">Check-In History</h2>
+<p class="text-muted mb-4">Your gym attendance records.</p>
+
+@if (Model.Any())
+{
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary mb-3">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <h6 class="text-muted mb-1">Total Check-Ins</h6>
+                    <h4 class="fw-bold mb-0">@Model.Count</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success mb-3">
+                        <i class="bi bi-calendar-week"></i>
+                    </div>
+                    <h6 class="text-muted mb-1">This Month</h6>
+                    <h4 class="fw-bold mb-0">
+                        @{
+                            var thisMonth = DateTime.Now.Month;
+                            var thisYear = DateTime.Now.Year;
+                            var monthlyCount = Model.Count(c => c.CheckInTime.Month == thisMonth && c.CheckInTime.Year == thisYear);
+                        }
+                        @monthlyCount
+                    </h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger mb-3">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <h6 class="text-muted mb-1">Last Check-In</h6>
+                    <h4 class="fw-bold mb-0">@Model.First().CheckInTime.ToString("dd MMM")</h4>
+                    <p class="text-muted small mb-0">@Model.First().CheckInTime.ToString("HH:mm")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Check-In History Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">
+                <i class="bi bi-qr-code-scan me-2 text-danger"></i>
+                All Check-Ins
+            </h5>
+            <a href="@Url.Action("Index", "CheckIn")" class="btn btn-sm btn-danger">
+                <i class="bi bi-qr-code-scan me-1"></i>Check In Now
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Day</th>
+                            <th>Method</th>
+                            <th>QR Code</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var index = 1;
+                        }
+                        @foreach (var checkIn in Model)
+                        {
+                            <tr>
+                                <td>@index</td>
+                                <td>@checkIn.CheckInTime.ToString("dd MMM yyyy")</td>
+                                <td>@checkIn.CheckInTime.ToString("HH:mm:ss")</td>
+                                <td>@checkIn.CheckInTime.ToString("dddd")</td>
+                                <td>
+                                    @if (checkIn.CheckInMethod == "QR Code")
+                                    {
+                                        <span class="badge bg-primary">
+                                            <i class="bi bi-qr-code-scan me-1"></i>QR Code
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@checkIn.CheckInMethod</span>
+                                    }
+                                </td>
+                                <td><small class="text-muted">@checkIn.QRCode</small></td>
+                            </tr>
+                            index++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Summary -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0 fw-bold">
+                <i class="bi bi-graph-up me-2 text-danger"></i>
+                Weekly Summary
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3">
+                @{
+                    var days = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
+                    var startOfWeek = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + 1);
+                    if (DateTime.Today.DayOfWeek == DayOfWeek.Sunday)
+                    {
+                        startOfWeek = DateTime.Today.AddDays(-6);
+                    }
+                }
+                @foreach (var day in days)
+                {
+                    var dayDate = startOfWeek.AddDays(Array.IndexOf(days, day));
+                    var count = Model.Count(c => c.CheckInTime.Date == dayDate.Date);
+
+                    <div class="col-md-1 col-3 text-center">
+                        <div class="card @(count > 0 ? "border-danger" : "border-light") @(DateTime.Today.Date == dayDate.Date ? "bg-light" : "")">
+                            <div class="card-body p-2">
+                                <small class="d-block text-muted">@day.Substring(0, 3)</small>
+                                <strong class="@(count > 0 ? "text-danger" : "text-muted")">@count</strong>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <p class="text-muted small mt-3 mb-0">
+                <i class="bi bi-info-circle me-1"></i>
+                Number of check-ins per day this week.
+            </p>
+        </div>
+    </div>
+
+    <div class="alert alert-info mt-4">
+        <i class="bi bi-info-circle me-2"></i>
+        Total check-ins: <strong>@Model.Count</strong>
+    </div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-qr-code-scan fs-1 text-muted d-block mb-3"></i>
+            <h4>No Check-Ins Yet</h4>
+            <p class="text-muted mb-4">You haven't checked in to the gym yet.</p>
+            <a href="@Url.Action("Index", "CheckIn")" class="btn btn-danger">
+                <i class="bi bi-qr-code-scan me-1"></i>Go to Check-In
+            </a>
+        </div>
+    </div>
+}

@@ -1,0 +1,41 @@
+﻿@model List<GymNet.ViewModels.MembershipPlanViewModel>
+@{
+    ViewBag.Title = "Membership Plans";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<section class="py-5" style="margin-top: 80px;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Membership Plans</h2>
+            <p class="text-muted">Choose the plan that works best for you</p>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var plan in Model)
+            {
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <h5 class="fw-bold">@plan.Name</h5>
+                            <h2 class="fw-bold my-3">R@(plan.Price.ToString("F2"))<span class="fs-6 text-muted">/@plan.DurationInMonths months</span></h2>
+                            <p class="text-muted mb-4">@plan.Description</p>
+                            @if (User.Identity.IsAuthenticated && User.IsInRole("Member"))
+                            {
+                                <a href="@Url.Action("SelectPlan", "Membership", new { id = plan.Id })" class="btn btn-danger w-100">Choose Plan</a>
+                            }
+                            else if (!User.Identity.IsAuthenticated)
+                            {
+                                <a href="@Url.Action("Register", "Account")" class="btn btn-danger w-100">Register to Join</a>
+                            }
+                            else
+                            {
+                                <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-danger w-100">View Plans</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
