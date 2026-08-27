@@ -1,0 +1,103 @@
+﻿@model GymNet.ViewModels.AdminRegisterMemberViewModel
+@{
+    ViewBag.Title = "Register Member";
+    ViewBag.Active = "Members";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="fw-bold mb-1">Register New Member</h2>
+<p class="text-muted mb-4">Add a new member to the gym. A temporary password will be generated.</p>
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+        @using (Html.BeginForm("RegisterMember", "Admin", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    @Html.LabelFor(m => m.FirstName, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control", placeholder = "John" })
+                    @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger small" })
+                </div>
+                <div class="col-md-6">
+                    @Html.LabelFor(m => m.LastName, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.LastName, new { @class = "form-control", placeholder = "Doe" })
+                    @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger small" })
+                </div>
+
+                <div class="col-md-6">
+                    @Html.LabelFor(m => m.Email, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "you@example.com", type = "email" })
+                    @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                </div>
+                <div class="col-md-6">
+                    @Html.LabelFor(m => m.PhoneNumber, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "0821234567" })
+                    @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger small" })
+                </div>
+
+                <div class="col-md-6">
+                    @Html.LabelFor(m => m.DateOfBirth, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.DateOfBirth, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                    @Html.ValidationMessageFor(m => m.DateOfBirth, "", new { @class = "text-danger small" })
+                </div>
+                <div class="col-md-6">
+                    @Html.LabelFor(m => m.Gender, new { @class = "form-label" })
+                    @Html.DropDownListFor(m => m.Gender,
+                        new SelectListItem[]
+                        {
+                            new SelectListItem { Text = "Select gender", Value = "" },
+                            new SelectListItem { Text = "Male", Value = "Male" },
+                            new SelectListItem { Text = "Female", Value = "Female" },
+                            new SelectListItem { Text = "Other", Value = "Other" }
+                        }, new { @class = "form-select" })
+                    @Html.ValidationMessageFor(m => m.Gender, "", new { @class = "text-danger small" })
+                </div>
+
+                <div class="col-12">
+                    @Html.LabelFor(m => m.Address, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Address, new { @class = "form-control", placeholder = "123 Main Street, City" })
+                    @Html.ValidationMessageFor(m => m.Address, "", new { @class = "text-danger small" })
+                </div>
+
+                <div class="col-12">
+                    <hr>
+                    <h5 class="fw-bold">Membership Options (Optional)</h5>
+                    <p class="text-muted small">You can assign a membership plan now or do it later.</p>
+                </div>
+
+                <div class="col-md-6">
+                    @Html.LabelFor(m => m.MembershipPlanId, new { @class = "form-label" })
+                    @Html.DropDownListFor(m => m.MembershipPlanId,
+                        (SelectList)ViewBag.MembershipPlans,
+                        "No Plan (Assign Later)",
+                        new { @class = "form-select" })
+                    @Html.ValidationMessageFor(m => m.MembershipPlanId, "", new { @class = "text-danger small" })
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-check mt-4 pt-2">
+                        @Html.CheckBoxFor(m => m.CollectPaymentNow, new { @class = "form-check-input" })
+                        @Html.LabelFor(m => m.CollectPaymentNow, new { @class = "form-check-label" })
+                        <small class="text-muted d-block">If checked, membership will be pending until payment is collected.</small>
+                    </div>
+                </div>
+
+                <div class="col-12 mt-4">
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="bi bi-person-plus me-1"></i>Register Member
+                    </button>
+                    <a href="@Url.Action("Members", "Admin")" class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

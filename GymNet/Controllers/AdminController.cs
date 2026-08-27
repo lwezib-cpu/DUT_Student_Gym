@@ -1,14 +1,15 @@
-﻿using System;
+﻿using GymNet.Data;
+using GymNet.Models;
+using GymNet.ViewModels;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using System;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.Owin;
-using GymNet.Data;
-using GymNet.Models;
-using GymNet.ViewModels;
 
 namespace GymNet.Controllers
 {
@@ -29,7 +30,157 @@ namespace GymNet.Controllers
                 _userManager = value;
             }
         }
+        // GET: /Admin/RegisterMember
+        public ActionResult RegisterMember()
+        {
+            // Get available membership plans for dropdown
+            ViewBag.MembershipPlans = new SelectList(
+                db.MembershipPlans.Where(p => p.IsActive).ToList(),
+                "Id",
+                "Name");
 
+            return View(new AdminRegisterMemberViewModel());
+        }
+
+        // POST: /Admin/RegisterMember
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> RegisterMember(AdminRegisterMemberViewModel model)
+        {
+            // Get available membership plans for dropdown (in case of validation error)
+            ViewBag.MembershipPlans = new SelectList(
+                db.MembershipPlans.Where(p => p.IsActive).ToList(),
+                "Id",
+                "Name");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Check if email already exists
+            var existingUser = await db.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+            if (existingUser != null)
+            {
+                ModelState.AddModelError("Email", "This email is already registered.");
+                return View(model);
+            }
+
+            // Generate temporary password (6 characters)
+            var tempPassword = GenerateTemporaryPassword();
+
+            // Create new user
+            var user = new ApplicationUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                EmailConfirmed = true,
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                PhoneNumber = model.PhoneNumber,
+                DateOfBirth = model.DateOfBirth,
+                Gender = model.Gender,
+                Address = model.Address,
+                LockoutEnabled = true
+            };
+
+            var userManager = HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
+            var result = await userManager.CreateAsync(user, tempPassword);
+
+            if (!result.Succeeded)
+            {
+                AddErrors(result);
+                return View(model);
+            }
+
+            // Assign Member role
+            var roleManager = HttpContext.GetOwinContext().Get<ApplicationRoleManager>();
+            if (!await roleManager.RoleExistsAsync("Member"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("Member"));
+            }
+            await userManager.AddToRoleAsync(user.Id, "Member");
+
+            // If membership plan selected, create membership
+            if (model.MembershipPlanId.HasValue)
+            {
+                var plan = await db.MembershipPlans.FindAsync(model.MembershipPlanId.Value);
+                if (plan != null)
+                {
+                    var membership = new MemberMembership
+                    {
+                        UserId = user.Id,
+                        MembershipPlanId = plan.Id,
+                        StartDate = DateTime.Now,
+                        EndDate = DateTime.Now.AddMonths(plan.DurationInMonths),
+                        Status = model.CollectPaymentNow ? "PendingPayment" : "Active",
+                        CreatedAt = DateTime.Now
+                    };
+
+                    db.MemberMemberships.Add(membership);
+                    await db.SaveChangesAsync();
+
+                    // If collecting payment now, create a pending payment record
+                    if (model.CollectPaymentNow)
+                    {
+                        var payment = new Payment
+                        {
+                            MemberMembershipId = membership.Id,
+                            Amount = plan.Price,
+                            PaymentMethod = "Manual",
+                            Status = "Pending",
+                            PaymentDate = DateTime.Now,
+                            TransactionReference = "ADMIN-" + DateTime.Now.ToString("yyyyMMddHHmmss")
+                        };
+
+                        db.Payments.Add(payment);
+                        await db.SaveChangesAsync();
+                    }
+                }
+            }
+
+            // Store temp password in TempData to show to admin
+            TempData["SuccessMessage"] = $"Member {user.FirstName} {user.LastName} registered successfully!";
+            TempData["TempPassword"] = tempPassword;
+            TempData["NewMemberEmail"] = user.Email;
+
+            return RedirectToAction("RegistrationSuccess");
+        }
+
+        // GET: /Admin/RegistrationSuccess
+        public ActionResult RegistrationSuccess()
+        {
+            if (TempData["TempPassword"] == null)
+            {
+                return RedirectToAction("Members");
+            }
+
+            ViewBag.TempPassword = TempData["TempPassword"];
+            ViewBag.NewMemberEmail = TempData["NewMemberEmail"];
+            ViewBag.SuccessMessage = TempData["SuccessMessage"];
+
+            return View();
+        }
+
+        // Helper method to generate temporary password
+        private string GenerateTemporaryPassword()
+        {
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+            var random = new Random();
+            var password = new string(Enumerable.Repeat(chars, 6)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+
+            return password;
+        }
+
+        // Helper method to add errors
+        private void AddErrors(IdentityResult result)
+        {
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error);
+            }
+        }
         // GET: /Admin/Dashboard
         public async Task<ActionResult> Dashboard()
         {
@@ -541,6 +692,241 @@ namespace GymNet.Controllers
             ViewBag.MemberEmail = user.Email;
 
             return View(checkIns);
+        }
+        // GET: /Admin/PendingPayments
+        public async Task<ActionResult> PendingPayments()
+        {
+            // Get members with pending payments or unpaid memberships
+            var pendingPayments = await db.MemberMemberships
+                .Include(m => m.User)
+                .Include(m => m.MembershipPlan)
+                .Include(m => m.Payments)
+                .Where(m => m.Status == "PendingPayment" ||
+                            (m.Status == "Active" && !m.Payments.Any(p => p.Status == "Completed")))
+                .OrderByDescending(m => m.CreatedAt)
+                .Select(m => new AdminPaymentListViewModel
+                {
+                    PaymentId = m.Payments.OrderByDescending(p => p.PaymentDate)
+                        .Select(p => p.Id)
+                        .FirstOrDefault(),
+                    MemberName = m.User.FirstName + " " + m.User.LastName,
+                    Email = m.User.Email,
+                    PlanName = m.MembershipPlan.Name,
+                    Amount = m.MembershipPlan.Price,
+                    PaymentMethod = m.Payments.OrderByDescending(p => p.PaymentDate)
+                        .Select(p => p.PaymentMethod)
+                        .FirstOrDefault() ?? "Not Specified",
+                    PaymentDate = m.Payments.OrderByDescending(p => p.PaymentDate)
+                        .Select(p => p.PaymentDate)
+                        .FirstOrDefault(),
+                    Status = m.Payments.OrderByDescending(p => p.PaymentDate)
+                        .Select(p => p.Status)
+                        .FirstOrDefault() ?? "Pending",
+                    TransactionReference = m.Payments.OrderByDescending(p => p.PaymentDate)
+                        .Select(p => p.TransactionReference)
+                        .FirstOrDefault() ?? "N/A"
+                })
+                .ToListAsync();
+
+            return View(pendingPayments);
+        }
+
+        // GET: /Admin/AllPayments
+        public async Task<ActionResult> AllPayments(string searchTerm = "", string paymentStatus = "")
+        {
+            var paymentsQuery = db.Payments
+                .Include(p => p.MemberMembership.User)
+                .Include(p => p.MemberMembership.MembershipPlan)
+                .Select(p => new AdminPaymentListViewModel
+                {
+                    PaymentId = p.Id,
+                    MemberName = p.MemberMembership.User.FirstName + " " + p.MemberMembership.User.LastName,
+                    Email = p.MemberMembership.User.Email,
+                    PlanName = p.MemberMembership.MembershipPlan.Name,
+                    Amount = p.Amount,
+                    PaymentMethod = p.PaymentMethod,
+                    PaymentDate = p.PaymentDate,
+                    Status = p.Status,
+                    TransactionReference = p.TransactionReference
+                });
+
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                searchTerm = searchTerm.Trim().ToLower();
+                paymentsQuery = paymentsQuery.Where(p =>
+                    p.MemberName.ToLower().Contains(searchTerm) ||
+                    p.Email.ToLower().Contains(searchTerm) ||
+                    p.TransactionReference.ToLower().Contains(searchTerm));
+            }
+
+            // Apply status filter
+            if (!string.IsNullOrWhiteSpace(paymentStatus))
+            {
+                paymentsQuery = paymentsQuery.Where(p => p.Status == paymentStatus);
+            }
+
+            var payments = await paymentsQuery
+                .OrderByDescending(p => p.PaymentDate)
+                .ToListAsync();
+
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.PaymentStatus = paymentStatus;
+
+            return View(payments);
+        }
+
+        // GET: /Admin/RecordPayment/{userId}
+        public async Task<ActionResult> RecordPayment(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return HttpNotFound();
+            }
+
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Get memberships that need payment
+            var memberships = await db.MemberMemberships
+                .Include(m => m.MembershipPlan)
+                .Include(m => m.Payments)
+                .Where(m => m.UserId == userId)
+                .OrderByDescending(m => m.CreatedAt)
+                .ToListAsync();
+
+            var pendingMembership = memberships
+                .FirstOrDefault(m => m.Status == "PendingPayment" ||
+                                     (m.Status == "Active" && !m.Payments.Any(p => p.Status == "Completed")));
+
+            if (pendingMembership == null)
+            {
+                TempData["ErrorMessage"] = "No pending payment found for this member.";
+                return RedirectToAction("Members");
+            }
+
+            var model = new AdminRecordPaymentViewModel
+            {
+                UserId = userId,
+                MemberMembershipId = pendingMembership.Id,
+                Amount = pendingMembership.MembershipPlan.Price
+            };
+
+            ViewBag.MemberName = user.FirstName + " " + user.LastName;
+            ViewBag.PlanName = pendingMembership.MembershipPlan.Name;
+            ViewBag.MembershipStatus = pendingMembership.Status;
+            ViewBag.MembershipEndDate = pendingMembership.EndDate;
+
+            return View(model);
+        }
+
+        // POST: /Admin/RecordPayment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> RecordPayment(AdminRecordPaymentViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var user = await db.Users.FirstOrDefaultAsync(u => u.Id == model.UserId);
+                ViewBag.MemberName = user?.FirstName + " " + user?.LastName;
+                return View(model);
+            }
+
+            var membership = await db.MemberMemberships
+                .Include(m => m.MembershipPlan)
+                .Include(m => m.Payments)
+                .FirstOrDefaultAsync(m => m.Id == model.MemberMembershipId);
+
+            if (membership == null)
+            {
+                return HttpNotFound();
+            }
+
+            var userInfo = await db.Users.FirstOrDefaultAsync(u => u.Id == model.UserId);
+
+            // Generate transaction reference if not provided
+            var transactionRef = string.IsNullOrWhiteSpace(model.TransactionReference)
+                ? "ADMIN-" + DateTime.Now.ToString("yyyyMMddHHmmss")
+                : model.TransactionReference;
+
+            // Create payment record
+            var payment = new Payment
+            {
+                MemberMembershipId = membership.Id,
+                Amount = model.Amount,
+                PaymentMethod = model.PaymentMethod,
+                Status = "Completed",
+                PaymentDate = DateTime.Now,
+                TransactionReference = transactionRef,
+                CardHolderName = userInfo?.FirstName + " " + userInfo?.LastName,
+                BankName = "Manual Payment",
+                AccountNumber = "N/A"
+            };
+
+            db.Payments.Add(payment);
+
+            // Activate the membership
+            membership.Status = "Active";
+
+            // If membership is pending, set start date to now
+            if (membership.Status == "PendingPayment")
+            {
+                membership.StartDate = DateTime.Now;
+                membership.EndDate = DateTime.Now.AddMonths(membership.MembershipPlan.DurationInMonths);
+            }
+
+            await db.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Payment of R{model.Amount.ToString("F2")} recorded for {userInfo?.FirstName} {userInfo?.LastName}. Membership activated successfully!";
+
+            return RedirectToAction("AllPayments");
+        }
+
+        // POST: /Admin/MarkAsPaid/{membershipId}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> MarkAsPaid(int membershipId)
+        {
+            var membership = await db.MemberMemberships
+                .Include(m => m.MembershipPlan)
+                .Include(m => m.User)
+                .Include(m => m.Payments)
+                .FirstOrDefaultAsync(m => m.Id == membershipId);
+
+            if (membership == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Create a completed payment record
+            var payment = new Payment
+            {
+                MemberMembershipId = membership.Id,
+                Amount = membership.MembershipPlan.Price,
+                PaymentMethod = "Manual",
+                Status = "Completed",
+                PaymentDate = DateTime.Now,
+                TransactionReference = "ADMIN-" + DateTime.Now.ToString("yyyyMMddHHmmss"),
+                CardHolderName = membership.User.FirstName + " " + membership.User.LastName,
+                BankName = "Manual Payment",
+                AccountNumber = "N/A"
+            };
+
+            db.Payments.Add(payment);
+
+            // Activate membership
+            membership.Status = "Active";
+            membership.StartDate = DateTime.Now;
+            membership.EndDate = DateTime.Now.AddMonths(membership.MembershipPlan.DurationInMonths);
+
+            await db.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Payment marked as completed for {membership.User.FirstName} {membership.User.LastName}. Membership activated!";
+
+            return RedirectToAction("PendingPayments");
         }
         // POST: /Admin/CancelMembership
         [HttpPost]

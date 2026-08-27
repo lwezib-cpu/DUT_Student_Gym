@@ -293,6 +293,12 @@
     <Content Include="Views\Admin\GenerateQRCode.cshtml" />
     <Content Include="Views\Admin\ManualCheckIn.cshtml" />
     <Content Include="Views\Admin\MemberCheckInHistory.cshtml" />
+    <Content Include="Views\Admin\RegisterMember.cshtml" />
+    <Content Include="Views\Admin\RegistrationSuccess.cshtml" />
+    <Content Include="Views\Admin\PendingPayments.cshtml" />
+    <Content Include="Views\Admin\AllPayments.cshtml" />
+    <Content Include="Views\Admin\RecordPayment.cshtml" />
+    <Content Include="Views\Membership\MyMembership.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

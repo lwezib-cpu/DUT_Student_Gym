@@ -1,0 +1,128 @@
+﻿@model List<GymNet.ViewModels.AdminPaymentListViewModel>
+@{
+    ViewBag.Title = "All Payments";
+    ViewBag.Active = "Payments";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="fw-bold mb-1">Payment Records</h2>
+<p class="text-muted mb-4">View all payment transactions.</p>
+
+<!-- Search and Filter -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm("AllPayments", "Admin", FormMethod.Get))
+        {
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="searchTerm" class="form-control"
+                           placeholder="Search by member name, email, or reference..."
+                           value="@ViewBag.SearchTerm" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Payment Status</label>
+                    <select name="paymentStatus" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="Completed" @(ViewBag.PaymentStatus == "Completed" ? "selected" : "")>Completed</option>
+                        <option value="Pending" @(ViewBag.PaymentStatus == "Pending" ? "selected" : "")>Pending</option>
+                        <option value="Failed" @(ViewBag.PaymentStatus == "Failed" ? "selected" : "")>Failed</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="bi bi-search me-1"></i>Search
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Reference</th>
+                            <th>Member</th>
+                            <th>Plan</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var payment in Model)
+                        {
+                            <tr>
+                                <td><small class="text-muted">@payment.TransactionReference</small></td>
+                                <td>
+                                    <strong>@payment.MemberName</strong>
+                                    <br />
+                                    <small class="text-muted">@payment.Email</small>
+                                </td>
+                                <td>@payment.PlanName</td>
+                                <td class="fw-bold">R@(payment.Amount.ToString("F2"))</td>
+                                <td>
+                                    @if (payment.PaymentMethod == "Credit Card")
+                                    {
+                                        <i class="bi bi-credit-card me-1"></i>
+                                    }
+                                    else if (payment.PaymentMethod == "Debit Card")
+                                    {
+                                        <i class="bi bi-credit-card-2-front me-1"></i>
+                                    }
+                                    else if (payment.PaymentMethod == "EFT")
+                                    {
+                                        <i class="bi bi-bank me-1"></i>
+                                    }
+                                    else if (payment.PaymentMethod == "Manual")
+                                    {
+                                        <i class="bi bi-person-check me-1"></i>
+                                    }
+                                    @payment.PaymentMethod
+                                </td>
+                                <td>@payment.PaymentDate.ToString("dd MMM yyyy HH:mm")</td>
+                                <td>
+                                    @if (payment.Status == "Completed")
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>Completed
+                                        </span>
+                                    }
+                                    else if (payment.Status == "Pending")
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-clock me-1"></i>Pending
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-x-circle me-1"></i>@payment.Status
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-receipt fs-1 text-muted d-block mb-3"></i>
+            <h4>No Payments Found</h4>
+            <p class="text-muted">Try adjusting your search criteria.</p>
+        </div>
+    </div>
+}

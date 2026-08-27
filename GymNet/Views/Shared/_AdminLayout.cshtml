@@ -47,10 +47,16 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link @(ViewBag.Active == "RegisterMember" ? "active" : "")" href="@Url.Action("RegisterMember", "Admin")">
+                        <i class="bi bi-person-plus me-2"></i> Register Member
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link @(ViewBag.Active == "Members" ? "active" : "")" href="@Url.Action("Members", "Admin")">
                         <i class="bi bi-people me-2"></i> Members
                     </a>
                 </li>
+
                 <li class="nav-item">
                     <a class="nav-link @(ViewBag.Active == "CheckIns" ? "active" : "")" href="@Url.Action("CheckIns", "Admin")">
                         <i class="bi bi-calendar-check me-2"></i> Check-Ins
@@ -62,13 +68,13 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link disabled" href="#" title="Coming soon" onclick="return false;">
-                        <i class="bi bi-card-checklist me-2"></i> Membership Plans
+                    <a class="nav-link @(ViewBag.Active == "Payments" ? "active" : "")" href="@Url.Action("PendingPayments", "Admin")">
+                        <i class="bi bi-clock-history me-2"></i> Pending Payments
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link disabled" href="#" title="Coming soon" onclick="return false;">
-                        <i class="bi bi-credit-card me-2"></i> Payments
+                    <a class="nav-link @(ViewBag.Active == "AllPayments" ? "active" : "")" href="@Url.Action("AllPayments", "Admin")">
+                        <i class="bi bi-receipt me-2"></i> All Payments
                     </a>
                 </li>
                 <li class="nav-item">

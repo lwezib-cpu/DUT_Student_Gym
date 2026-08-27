@@ -69,11 +69,21 @@ namespace GymNet.ViewModels
     {
         public int Id { get; set; }
         public string PlanName { get; set; }
+        public string PlanDescription { get; set; }
         public decimal Price { get; set; }
+        public int DurationInMonths { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Status { get; set; }
         public int DaysRemaining { get; set; }
+
+        // Payment Info
+        public string PaymentStatus { get; set; }
+        public DateTime? LastPaymentDate { get; set; }
+        public decimal LastPaymentAmount { get; set; }
+        public string TransactionReference { get; set; }
+        public string PaymentMethod { get; set; }
+        public decimal TotalPaid { get; set; }
     }
 
     public class PaymentHistoryViewModel

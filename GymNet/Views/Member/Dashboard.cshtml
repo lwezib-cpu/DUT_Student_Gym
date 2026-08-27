@@ -8,8 +8,33 @@
 <h2 class="fw-bold mb-1">Welcome, @Model.FirstName</h2>
 <p class="text-muted mb-4">Here's your GymNet overview.</p>
 
-<div class="row g-4 mb-4">
-    <div class="col-md-4">
+@if (!Model.HasActiveMembership && Model.MembershipStatus != "No Membership")
+{
+    <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+        <div>
+            <strong>@Model.MembershipStatus</strong>
+            <p class="mb-0">
+                @if (Model.MembershipStatus == "Pending Payment")
+                {
+                    <span>Your membership is pending payment. Please contact the gym administrator to complete your payment.</span>
+                }
+                else if (Model.MembershipStatus == "Expired")
+                {
+                    <span>Your membership has expired. <a href="@Url.Action("Plans", "Membership")" class="alert-link fw-bold">Renew now</a> to continue your access.</span>
+                }
+                else
+                {
+                    <span>Please <a href="@Url.Action("Plans", "Membership")" class="alert-link fw-bold">view membership plans</a> to get started!</span>
+                }
+            </p>
+        </div>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Membership Status Card -->
+    <div class="col-md-6 col-lg-4">
         <div class="card stat-card shadow-sm h-100">
             <div class="card-body">
                 <div class="stat-icon bg-danger bg-opacity-10 text-danger mb-3">
@@ -19,19 +44,61 @@
                 <h4 class="fw-bold">
                     @if (Model.MembershipStatus == "Active")
                     {
-                        <span class="badge bg-success">Active</span>
+                        <span class="text-success">@Model.MembershipStatus</span>
+                    }
+                    else if (Model.MembershipStatus == "Pending Payment")
+                    {
+                        <span class="text-warning">@Model.MembershipStatus</span>
+                    }
+                    else if (Model.MembershipStatus == "Expired")
+                    {
+                        <span class="text-danger">@Model.MembershipStatus</span>
                     }
                     else
                     {
-                        <span class="badge bg-secondary">No Active Plan</span>
+                        <span class="text-secondary">@Model.MembershipStatus</span>
                     }
                 </h4>
-                <p class="text-muted small mb-0">Plan: @(Model.MembershipPlan ?? "None")</p>
+                <p class="text-muted small mb-1">Plan: <strong>@Model.MembershipPlan</strong></p>
+                @if (Model.MembershipEndDate.HasValue)
+                {
+                    <p class="text-muted small mb-1">
+                        Expires: <strong>@Model.MembershipEndDate.Value.ToString("dd MMM yyyy")</strong>
+                    </p>
+                }
+                @if (Model.HasActiveMembership)
+                {
+                    <div class="progress mt-2" style="height: 8px;">
+                        @{
+                            var totalDays = (Model.MembershipEndDate.Value - (Model.MemberSince ?? DateTime.Now)).Days;
+                            var progressPercentage = totalDays > 0 ? (int)((double)(totalDays - Model.DaysRemaining) / totalDays * 100) : 0;
+                            var progressColor = Model.DaysRemaining > 30 ? "bg-success" :
+                                               Model.DaysRemaining > 7 ? "bg-warning" : "bg-danger";
+                        }
+                        <div class="progress-bar @progressColor" role="progressbar"
+                             style="width: @progressPercentage%"
+                             aria-valuenow="@progressPercentage" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-0 mt-1">
+                        @if (Model.DaysRemaining > 0)
+                        {
+                            <span class="@(Model.DaysRemaining <= 7 ? "text-danger fw-bold" : "")">
+                                @Model.DaysRemaining days remaining
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-danger fw-bold">Expired</span>
+                        }
+                    </p>
+                }
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
+    <!-- Payment Status Card -->
+    <div class="col-md-6 col-lg-4">
         <div class="card stat-card shadow-sm h-100">
             <div class="card-body">
                 <div class="stat-icon bg-success bg-opacity-10 text-success mb-3">
@@ -39,49 +106,126 @@
                 </div>
                 <h6 class="text-muted mb-1">Payment Status</h6>
                 <h4 class="fw-bold">
-                    @if (Model.PaymentStatus == "Completed" || Model.PaymentStatus == "Paid")
+                    @if (Model.PaymentStatus == "Paid")
                     {
-                        <span class="badge bg-success">Paid</span>
+                        <span class="text-success">@Model.PaymentStatus</span>
+                    }
+                    else if (Model.PaymentStatus == "Pending")
+                    {
+                        <span class="text-warning">@Model.PaymentStatus</span>
+                    }
+                    else if (Model.PaymentStatus == "Failed")
+                    {
+                        <span class="text-danger">@Model.PaymentStatus</span>
                     }
                     else
                     {
-                        <span class="badge bg-warning text-dark">Pending</span>
+                        <span class="text-secondary">@Model.PaymentStatus</span>
                     }
                 </h4>
-                <p class="text-muted small mb-0">Latest transaction details</p>
+                <p class="text-muted small mb-1">Total Paid: <strong>R@(Model.TotalPayments.ToString("F2"))</strong></p>
+                @if (Model.LastPaymentDate.HasValue)
+                {
+                    <p class="text-muted small mb-1">
+                        Last Payment: <strong>@Model.LastPaymentDate.Value.ToString("dd MMM yyyy")</strong>
+                    </p>
+                    <p class="text-muted small mb-0">Amount: <strong>R@(Model.LastPaymentAmount.ToString("F2"))</strong></p>
+                }
+                else
+                {
+                    <p class="text-muted small mb-0">No completed payments yet</p>
+                }
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
+    <!-- Profile Card -->
+    <div class="col-md-6 col-lg-4">
         <div class="card stat-card shadow-sm h-100">
             <div class="card-body">
                 <div class="stat-icon bg-primary bg-opacity-10 text-primary mb-3">
                     <i class="bi bi-person-fill"></i>
                 </div>
-                <h6 class="text-muted mb-2">Profile Details</h6>
+                <h6 class="text-muted mb-2">Profile</h6>
                 <p class="mb-1"><strong>@Model.FirstName @Model.LastName</strong></p>
-                <p class="mb-1 small text-muted">@Model.Email</p>
-                <p class="mb-1 small text-muted">@Model.PhoneNumber</p>
+                <p class="mb-1 small text-muted">
+                    <i class="bi bi-envelope me-1"></i>@Model.Email
+                </p>
+                <p class="mb-1 small text-muted">
+                    <i class="bi bi-telephone me-1"></i>@Model.PhoneNumber
+                </p>
+                @if (Model.MemberSince.HasValue)
+                {
+                    <p class="mb-0 small text-muted">
+                        <i class="bi bi-calendar-check me-1"></i>Member since @Model.MemberSince.Value.ToString("MMM yyyy")
+                    </p>
+                }
             </div>
         </div>
     </div>
 </div>
 
-<!-- Quick Actions Banner -->
-<div class="card bg-light border-0 shadow-sm p-4">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-        <div>
-            <h5 class="fw-bold mb-1">Manage Your Gym Access</h5>
-            <p class="text-muted mb-0">Explore membership options or check your payment receipts.</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="@Url.Action("Plans", "Membership")" class="btn btn-danger">
-                <i class="bi bi-grid me-1"></i> View Plans
-            </a>
-            <a href="@Url.Action("PaymentHistory", "Membership")" class="btn btn-outline-dark">
-                <i class="bi bi-receipt me-1"></i> Payment History
-            </a>
+<!-- Quick Actions -->
+<div class="row g-4 mt-3">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 fw-bold">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    @if (!Model.HasActiveMembership && Model.MembershipStatus == "No Membership")
+                    {
+                        <div class="col-md-4">
+                            <a href="@Url.Action("Plans", "Membership")" class="btn btn-danger w-100 py-3">
+                                <i class="bi bi-cart-plus fs-5 d-block mb-1"></i>
+                                Get Membership
+                            </a>
+                        </div>
+                    }
+                    else if (Model.MembershipStatus == "Pending Payment")
+                    {
+                        <div class="col-md-4">
+                            <div class="alert alert-warning mb-0">
+                                <i class="bi bi-clock me-2"></i>
+                                Payment pending - Please contact admin
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.HasActiveMembership)
+                    {
+                        <div class="col-md-4">
+                            <a href="@Url.Action("MyMembership", "Membership")" class="btn btn-outline-danger w-100 py-3">
+                                <i class="bi bi-eye fs-5 d-block mb-1"></i>
+                                View My Membership
+                            </a>
+                        </div>
+                        if (Model.DaysRemaining <= 30)
+                        {
+                            <div class="col-md-4">
+                                <a href="@Url.Action("Plans", "Membership")" class="btn btn-warning w-100 py-3">
+                                    <i class="bi bi-arrow-repeat fs-5 d-block mb-1"></i>
+                                    Renew Membership
+                                </a>
+                            </div>
+                        }
+                    }
+
+                    <div class="col-md-4">
+                        <a href="@Url.Action("Plans", "Membership")" class="btn btn-outline-primary w-100 py-3">
+                            <i class="bi bi-card-list fs-5 d-block mb-1"></i>
+                            View All Plans
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="@Url.Action("PaymentHistory", "Membership")" class="btn btn-outline-success w-100 py-3">
+                            <i class="bi bi-receipt fs-5 d-block mb-1"></i>
+                            Payment History
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
