@@ -2,31 +2,104 @@
     ViewBag.Title = "Home";
 }
 
+<style>
+    /* ---------- simple, lightweight animation styles ---------- */
+
+    /* Hero content fades/slides in on page load */
+    .hero-fade {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: heroFadeUp 0.8s ease-out forwards;
+    }
+
+        .hero-fade.delay-1 {
+            animation-delay: 0.15s;
+        }
+
+        .hero-fade.delay-2 {
+            animation-delay: 0.3s;
+        }
+
+    @@keyframes heroFadeUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Scroll-reveal: sections fade/slide up as you scroll to them */
+    .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    /* Slight, tasteful hover lift on cards */
+    .card {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 0.75rem 1.5rem rgba(0,0,0,0.12) !important;
+        }
+
+    /* Buttons get a subtle press/lift feel */
+    .btn {
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+    /* Toned-down heading sizes for better balance on all screens */
+    #hero h1 {
+        font-size: clamp(2.1rem, 5vw, 3.4rem);
+        line-height: 1.15;
+    }
+
+    #hero p.lead {
+        font-size: clamp(1rem, 2vw, 1.15rem);
+    }
+
+    section h2.fw-bold {
+        font-size: clamp(1.5rem, 3vw, 2.1rem);
+    }
+</style>
+
 <!-- ============ HERO SECTION ============ -->
 <section id="hero" class="d-flex align-items-center text-white"
          style="min-height:100vh; background:linear-gradient(rgba(0,0,0,0.65),rgba(0,0,0,0.65)), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;">
     <div class="container text-center">
-        <h1 class="display-3 fw-bold">Transform Your Body. Transform Your Life.</h1>
-        <p class="lead col-lg-8 mx-auto mb-4">
-            Join GymNet and get access to top-tier equipment, structured membership
+        <h1 class="fw-bold hero-fade">Transform Your Body. Transform Your Life.</h1>
+        <p class="lead col-lg-8 mx-auto mb-4 hero-fade delay-1">
+            Join DutGym and get access to top-tier equipment, structured membership
             plans, and a community that keeps you accountable.
         </p>
 
-        @if (!Request.IsAuthenticated)
-        {
-            <a href="@Url.Action("Plans", "Membership")" class="btn btn-danger btn-lg px-4 me-2">View Memberships</a>
-            <a href="@Url.Action("Register", "Account")" class="btn btn-outline-light btn-lg px-4">Join Now</a>
-        }
-        else if (User.IsInRole("Member"))
-        {
-            <a href="@Url.Action("Plans", "Membership")" class="btn btn-danger btn-lg px-4 me-2">View Memberships</a>
-            <a href="@Url.Action("Dashboard", "Member")" class="btn btn-outline-light btn-lg px-4">My Dashboard</a>
-        }
-        else if (User.IsInRole("Admin"))
-        {
-            <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-danger btn-lg px-4 me-2">Admin Dashboard</a>
-            <a href="@Url.Action("Plans", "Membership")" class="btn btn-outline-light btn-lg px-4">View Plans</a>
-        }
+        <div class="hero-fade delay-2">
+            @if (!Request.IsAuthenticated)
+            {
+                <a href="@Url.Action("Plans", "Membership")" class="btn btn-danger btn-lg px-4 me-2">View Memberships</a>
+                <a href="@Url.Action("Register", "Account")" class="btn btn-outline-light btn-lg px-4">Join Now</a>
+            }
+            else if (User.IsInRole("Member"))
+            {
+                <a href="@Url.Action("Plans", "Membership")" class="btn btn-danger btn-lg px-4 me-2">View Memberships</a>
+                <a href="@Url.Action("Dashboard", "Member")" class="btn btn-outline-light btn-lg px-4">My Dashboard</a>
+            }
+            else if (User.IsInRole("Admin"))
+            {
+                <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-danger btn-lg px-4 me-2">Admin Dashboard</a>
+                <a href="@Url.Action("Plans", "Membership")" class="btn btn-outline-light btn-lg px-4">View Plans</a>
+            }
+        </div>
     </div>
 </section>
 
@@ -34,15 +107,15 @@
 <section id="about" class="py-5 py-lg-6">
     <div class="container py-5">
         <div class="row align-items-center g-5">
-            <div class="col-lg-6">
+            <div class="col-lg-6 reveal">
                 <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=900&q=80"
                      alt="Inside GymNet" class="img-fluid rounded-4 shadow" />
             </div>
-            <div class="col-lg-6">
+            <div class="col-lg-6 reveal">
                 <h6 class="text-danger fw-bold text-uppercase">About Us</h6>
                 <h2 class="fw-bold mb-3">A Gym Built Around Your Goals</h2>
                 <p class="text-muted">
-                    GymNet was founded on a simple idea: fitness should be accessible,
+                    DutGym was founded on a simple idea: fitness should be accessible,
                     structured, and results-driven. Whether you're just starting out or
                     training for a competition, our facility and membership system are
                     designed to support every stage of your journey.
@@ -60,7 +133,7 @@
 <!-- ============ MEMBERSHIP PLANS SECTION ============ -->
 <section id="memberships" class="py-5 py-lg-6 bg-light">
     <div class="container py-5">
-        <div class="text-center mb-5">
+        <div class="text-center mb-5 reveal">
             <h6 class="text-danger fw-bold text-uppercase">Pricing</h6>
             <h2 class="fw-bold">Membership Plans</h2>
             <p class="text-muted col-lg-6 mx-auto">
@@ -69,7 +142,7 @@
         </div>
         <div class="row g-4">
             <!-- DUT Semester Plan -->
-            <div class="col-md-4">
+            <div class="col-md-4 reveal">
                 <div class="card h-100 shadow border-0 border-danger" style="border-top:4px solid #dc3545;">
                     <div class="card-body text-center p-4">
                         <span class="badge bg-danger mb-2">Best Value</span>
@@ -102,7 +175,7 @@
             </div>
 
             <!-- Monthly Plan -->
-            <div class="col-md-4">
+            <div class="col-md-4 reveal">
                 <div class="card h-100 shadow-sm border-0">
                     <div class="card-body text-center p-4">
                         <h5 class="fw-bold">Monthly Plan</h5>
@@ -134,7 +207,7 @@
             </div>
 
             <!-- Annual Plan -->
-            <div class="col-md-4">
+            <div class="col-md-4 reveal">
                 <div class="card h-100 shadow-sm border-0">
                     <div class="card-body text-center p-4">
                         <span class="badge bg-success mb-2">Save 30%</span>
@@ -172,27 +245,27 @@
 <!-- ============ WHY CHOOSE US SECTION ============ -->
 <section id="why-us" class="py-5 py-lg-6">
     <div class="container py-5">
-        <div class="text-center mb-5">
-            <h6 class="text-danger fw-bold text-uppercase">Why GymNet</h6>
+        <div class="text-center mb-5 reveal">
+            <h6 class="text-danger fw-bold text-uppercase">Why DutGym</h6>
             <h2 class="fw-bold">Why Choose Us</h2>
         </div>
         <div class="row g-4 text-center">
-            <div class="col-md-3">
+            <div class="col-md-3 reveal">
                 <i class="bi bi-clock-history display-5 text-danger"></i>
                 <h5 class="fw-bold mt-3">Flexible Hours</h5>
                 <p class="text-muted">Open early, closes late — train on your schedule.</p>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 reveal">
                 <i class="bi bi-award display-5 text-danger"></i>
                 <h5 class="fw-bold mt-3">Proven Results</h5>
                 <p class="text-muted">Structured plans that keep members progressing.</p>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 reveal">
                 <i class="bi bi-shield-check display-5 text-danger"></i>
                 <h5 class="fw-bold mt-3">Safe & Clean</h5>
                 <p class="text-muted">Hygiene and safety standards you can rely on.</p>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 reveal">
                 <i class="bi bi-people display-5 text-danger"></i>
                 <h5 class="fw-bold mt-3">Real Community</h5>
                 <p class="text-muted">A supportive environment that keeps you motivated.</p>
@@ -205,10 +278,10 @@
 @if (!Request.IsAuthenticated)
 {
     <section id="cta" class="py-5 py-lg-6 bg-danger text-white">
-        <div class="container py-5 text-center">
+        <div class="container py-5 text-center reveal">
             <h2 class="fw-bold mb-3">Ready to Start Your Fitness Journey?</h2>
             <p class="lead mb-4 col-lg-6 mx-auto">
-                Join GymNet today and get access to top-tier equipment, expert guidance,
+                Join DutGym today and get access to top-tier equipment, expert guidance,
                 and a community that supports your goals.
             </p>
             <a href="@Url.Action("Register", "Account")" class="btn btn-light btn-lg px-5 me-3">Join Now</a>
@@ -220,7 +293,7 @@
 <!-- ============ CONTACT SECTION ============ -->
 <section id="contact" class="py-5 py-lg-6 bg-light">
     <div class="container py-5">
-        <div class="text-center mb-5">
+        <div class="text-center mb-5 reveal">
             <h6 class="text-danger fw-bold text-uppercase">Get In Touch</h6>
             <h2 class="fw-bold">Contact Us</h2>
             <p class="text-muted">
@@ -228,7 +301,7 @@
             </p>
         </div>
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-lg-8 reveal">
                 <form>
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -265,3 +338,20 @@
         </div>
     </div>
 </section>
+
+<script>// Simple scroll-reveal: fade/slide up sections as they enter the viewport
+    document.addEventListener('DOMContentLoaded', function () {
+        var revealEls = document.querySelectorAll('.reveal');
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15 });
+
+        revealEls.forEach(function (el) {
+            observer.observe(el);
+        });
+    });</script>
