@@ -80,6 +80,9 @@
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
     </Reference>
+    <Reference Include="Rotativa, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rotativa.1.7.3\lib\net461\Rotativa.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -183,6 +186,10 @@
     <Compile Include="Migrations\202608141909276_AddCheckInTable.Designer.cs">
       <DependentUpon>202608141909276_AddCheckInTable.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202608311418240_AddPaymentFields.cs" />
+    <Compile Include="Migrations\202608311418240_AddPaymentFields.Designer.cs">
+      <DependentUpon>202608311418240_AddPaymentFields.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\ApplicationUser.cs" />
     <Compile Include="Models\CheckIn.cs" />
@@ -217,6 +224,10 @@
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Rotativa\help-wkhtmltoimage.txt" />
+    <Content Include="Rotativa\help-wkhtmltopdf.txt" />
+    <Content Include="Rotativa\wkhtmltoimage.exe" />
+    <Content Include="Rotativa\wkhtmltopdf.exe" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -245,6 +256,7 @@
     <Content Include="Content\bootstrap-grid.rtl.css.map" />
     <Content Include="Content\bootstrap-grid.min.css.map" />
     <Content Include="Content\bootstrap-grid.css.map" />
+    <Content Include="App_Browsers\qt.browser" />
     <None Include="Scripts\jquery-3.7.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.1.js" />
     <Content Include="Scripts\jquery-3.7.1.min.js" />
@@ -299,6 +311,7 @@
     <Content Include="Views\Admin\AllPayments.cshtml" />
     <Content Include="Views\Admin\RecordPayment.cshtml" />
     <Content Include="Views\Membership\MyMembership.cshtml" />
+    <Content Include="Views\Membership\Receipt.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -321,6 +334,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202608141909276_AddCheckInTable.resx">
       <DependentUpon>202608141909276_AddCheckInTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608311418240_AddPaymentFields.resx">
+      <DependentUpon>202608311418240_AddPaymentFields.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

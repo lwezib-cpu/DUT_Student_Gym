@@ -30,39 +30,42 @@ namespace GymNet.ViewModels
         [Display(Name = "Payment Method")]
         public string PaymentMethod { get; set; }
 
-        [Required(ErrorMessage = "Card holder name is required")]
+        // Credit/Debit Card Fields
         [Display(Name = "Card Holder Name")]
-        [StringLength(100)]
+        [StringLength(100, ErrorMessage = "Card holder name cannot exceed 100 characters")]
         public string CardHolderName { get; set; }
 
-        [Required(ErrorMessage = "Card number is required")]
         [Display(Name = "Card Number")]
-        [StringLength(19, MinimumLength = 16)]
-        [RegularExpression(@"^\d{16}$", ErrorMessage = "Please enter a valid 16-digit card number")]
+        [StringLength(19, MinimumLength = 16, ErrorMessage = "Card number must be 16 digits")]
         public string CardNumber { get; set; }
 
-        [Required(ErrorMessage = "Expiry date is required")]
         [Display(Name = "Expiry Date (MM/YY)")]
-        [StringLength(5)]
-        [RegularExpression(@"^(0[1-9]|1[0-2])\/([0-9]{2})$", ErrorMessage = "Please use MM/YY format")]
+        [StringLength(5, ErrorMessage = "Expiry date must be in MM/YY format")]
         public string ExpiryDate { get; set; }
 
-        [Required(ErrorMessage = "CVV is required")]
         [Display(Name = "CVV")]
-        [StringLength(4, MinimumLength = 3)]
-        [RegularExpression(@"^\d{3,4}$", ErrorMessage = "Please enter a valid CVV")]
+        [StringLength(4, MinimumLength = 3, ErrorMessage = "CVV must be 3 or 4 digits")]
         public string CVV { get; set; }
 
-        [Required(ErrorMessage = "Bank name is required")]
+        // EFT Fields
         [Display(Name = "Bank Name")]
         [StringLength(100)]
         public string BankName { get; set; }
 
-        [Required(ErrorMessage = "Account number is required")]
+        [Display(Name = "Account Holder")]
+        [StringLength(100)]
+        public string AccountHolderName { get; set; }
+
         [Display(Name = "Account Number")]
-        [StringLength(20)]
-        [RegularExpression(@"^\d{8,20}$", ErrorMessage = "Please enter a valid account number")]
+        [StringLength(20, MinimumLength = 8, ErrorMessage = "Account number must be between 8 and 20 digits")]
         public string AccountNumber { get; set; }
+
+        [Display(Name = "Branch Code")]
+        [StringLength(6, MinimumLength = 6, ErrorMessage = "Branch code must be 6 digits")]
+        public string BranchCode { get; set; }
+
+        [Display(Name = "Account Type")]
+        public string AccountType { get; set; } // Cheque, Savings, Transmission
     }
 
     public class MemberMembershipViewModel
@@ -100,5 +103,48 @@ namespace GymNet.ViewModels
         public string MembershipPlanName { get; set; }
         public DateTime MembershipStartDate { get; set; }
         public DateTime MembershipEndDate { get; set; }
+
+        // Additional payment details for display
+        public string AccountNumber { get; set; }
+        public string AccountType { get; set; }
+        public string BranchCode { get; set; }
+    }
+
+    public class ReceiptViewModel
+    {
+        public int PaymentId { get; set; }
+        public string TransactionReference { get; set; }
+        public DateTime PaymentDate { get; set; }
+        public string MembershipPlanName { get; set; }
+        public decimal Amount { get; set; }
+        public string PaymentMethod { get; set; }
+        public string Status { get; set; }
+        public string BankName { get; set; }
+        public string CardHolderName { get; set; }
+        public string MaskedCardNumber { get; set; }
+        public DateTime MembershipStartDate { get; set; }
+        public DateTime MembershipEndDate { get; set; }
+
+        // EFT specific fields
+        public string AccountNumber { get; set; }
+        public string AccountType { get; set; }
+        public string BranchCode { get; set; }
+
+        // Member details
+        public string MemberName { get; set; }
+        public string MemberEmail { get; set; }
+
+        // Gym details (you can move these to a settings/config file)
+        public string GymName { get; set; } = "GymNet Fitness Center";
+        public string GymAddress { get; set; } = "123 Fitness Street, Johannesburg, South Africa";
+        public string GymPhone { get; set; } = "+27 11 234 5678";
+        public string GymEmail { get; set; } = "info@gymnet.co.za";
+
+        // Computed properties for display
+        public string FormattedAmount => $"R {Amount:F2}";
+        public string SubscriptionPeriod => $"{MembershipStartDate:dd MMM yyyy} - {MembershipEndDate:dd MMM yyyy}";
+        public int SubscriptionDurationDays => (MembershipEndDate - MembershipStartDate).Days;
+        public bool IsActive => MembershipEndDate > DateTime.Now;
+        public int DaysRemaining => IsActive ? (MembershipEndDate - DateTime.Now).Days : 0;
     }
 }

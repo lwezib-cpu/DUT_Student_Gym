@@ -1,115 +1,281 @@
 ﻿@model GymNet.Models.MemberMembership
 @{
-    ViewBag.Title = "Payment Receipt";
+    ViewBag.Title = "Payment Confirmation";
     Layout = "~/Views/Shared/_MemberLayout.cshtml";
     var payment = Model.Payments.FirstOrDefault();
 }
 
 <style>
-    media print {
-        /* Hide navbar, sidebar, and print buttons during printing */
-        .dashboard-topbar, .dashboard-sidebar, .no-print {
+    @@media print {
+        .dashboard-topbar, .dashboard-sidebar, .no-print, .alert {
             display: none !important;
         }
+
         .dashboard-content {
             margin: 0 !important;
             padding: 0 !important;
         }
-        .card {
-            border: none !important;
+
+        .receipt-container {
             box-shadow: none !important;
+            margin: 0 !important;
+            padding: 20px !important;
         }
+    }
+
+    .receipt-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        padding: 40px;
+    }
+
+    .receipt-header {
+        border-bottom: 3px solid #dc3545;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    .company-logo {
+        width: 80px;
+        height: 80px;
+        background: #dc3545;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        font-weight: bold;
+    }
+
+    .receipt-title {
+        color: #dc3545;
+        font-weight: bold;
+        letter-spacing: 2px;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .detail-label {
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .detail-value {
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .amount-display {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .amount-value {
+        font-size: 36px;
+        font-weight: bold;
+        color: #28a745;
+    }
+
+    .barcode {
+        font-family: 'Courier New', monospace;
+        letter-spacing: 3px;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
     }
 </style>
 
 <div class="container my-4">
-    <!-- Non-printable Top Actions -->
-    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <!-- Success Alert (Hidden when printing) -->
+    <div class="alert alert-success no-print mb-4">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+            <div>
+                <h5 class="mb-1">Payment Successful!</h5>
+                <p class="mb-0">Your membership is now active. A receipt has been generated for your records.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons (Hidden when printing) -->
+    <div class="action-buttons no-print">
         <a href="@Url.Action("Dashboard", "Member")" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
         </a>
+
+        @if (payment != null)
+        {
+            <a href="@Url.Action("Receipt", "Membership", new { paymentId = payment.Id })"
+               class="btn btn-outline-primary" target="_blank">
+                <i class="bi bi-receipt me-1"></i> View Full Receipt
+            </a>
+        }
+
         <button onclick="window.print()" class="btn btn-danger">
             <i class="bi bi-printer me-1"></i> Print Receipt
         </button>
     </div>
 
     <!-- Receipt Card -->
-    <div class="card shadow-sm border p-4">
-        <div class="card-body">
-            <!-- Receipt Header -->
-            <div class="row mb-4">
-                <div class="col-6">
-                    <h2 class="fw-bold">GYM<span class="text-danger">NET</span></h2>
-                    <p class="text-muted small mb-0">GymNet Fitness & Recreation</p>
-                    <p class="text-muted small mb-0">Durban University of Technology</p>
-                </div>
-                <div class="col-6 text-end">
-                    <h4 class="fw-bold text-success mb-1"><i class="bi bi-check-circle-fill me-1"></i> PAID</h4>
-                    <p class="text-muted small mb-0"><strong>Ref:</strong> @(payment?.TransactionReference ?? "N/A")</p>
-                    <p class="text-muted small mb-0"><strong>Date:</strong> @(payment?.PaymentDate.ToString("yyyy-MM-dd HH:mm") ?? DateTime.Now.ToString("yyyy-MM-dd"))</p>
-                </div>
-            </div>
-
-            <hr />
-
-            <!-- Customer & Payment Summary -->
-            <div class="row my-4">
-                <div class="col-6">
-                    <h6 class="fw-bold text-muted text-uppercase small">Billed To</h6>
-                    <p class="mb-1"><strong>@Model.User.FirstName @Model.User.LastName</strong></p>
-                    <p class="mb-1 small text-muted">@Model.User.Email</p>
-                    <p class="mb-0 small text-muted">@Model.User.PhoneNumber</p>
-                </div>
-                <div class="col-6 text-end">
-                    <h6 class="fw-bold text-muted text-uppercase small">Payment Method</h6>
-                    <p class="mb-1"><strong>@(payment?.PaymentMethod ?? "Card")</strong></p>
-                    @if (!string.IsNullOrEmpty(payment?.CardNumber))
-                    {
-                        <p class="mb-0 small text-muted">Card Ending: @payment.CardNumber</p>
-                    }
-                </div>
-            </div>
-
-            <!-- Table of Items -->
-            <div class="table-responsive my-4">
-                <table class="table table-bordered">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Description</th>
-                            <th class="text-center">Duration</th>
-                            <th class="text-end">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <strong>@Model.MembershipPlan.Name</strong><br />
-                                <small class="text-muted">@Model.MembershipPlan.Description</small>
-                            </td>
-                            <td class="text-center">@Model.MembershipPlan.DurationInMonths Months</td>
-                            <td class="text-end">R@(payment?.Amount.ToString("F2") ?? Model.MembershipPlan.Price.ToString("F2"))</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Total Calculation -->
-            <div class="row justify-content-end">
-                <div class="col-md-5">
-                    <div class="d-flex justify-content-between py-2 border-top border-bottom fs-5 fw-bold">
-                        <span>Total Paid:</span>
-                        <span class="text-danger">R@(payment?.Amount.ToString("F2") ?? Model.MembershipPlan.Price.ToString("F2"))</span>
+    <div class="receipt-container" id="receiptContent">
+        <!-- Receipt Header -->
+        <div class="receipt-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="company-logo me-3">G</div>
+                    <div>
+                        <h2 class="mb-0">GYM<span class="text-danger">NET</span></h2>
+                        <p class="text-muted mb-0">GymNet Fitness & Recreation</p>
+                        <p class="text-muted mb-0">Durban University of Technology</p>
+                        <p class="text-muted mb-0">Tel: +27 11 234 5678 | Email: info@gymnet.co.za</p>
                     </div>
                 </div>
+                <div class="text-end">
+                    <h3 class="receipt-title mb-0">RECEIPT</h3>
+                    <p class="text-muted mb-0">Date: @DateTime.Now.ToString("dd MMMM yyyy HH:mm")</p>
+                    <p class="text-success mb-0">
+                        <i class="bi bi-check-circle-fill me-1"></i>PAID
+                    </p>
+                </div>
             </div>
+        </div>
 
-            <!-- Membership Validity Notice -->
-            <div class="alert alert-light border mt-4">
-                <h6 class="fw-bold"><i class="bi bi-calendar-check me-2"></i> Membership Period</h6>
-                <p class="small text-muted mb-0">
-                    Your membership is active from <strong>@Model.StartDate.ToString("dd MMM yyyy")</strong> to <strong>@Model.EndDate.ToString("dd MMM yyyy")</strong>.
-                </p>
+        <!-- Receipt Details -->
+        <div class="row mb-4">
+            <div class="col-6">
+                <h6 class="text-muted mb-3">BILLED TO</h6>
+                <p class="mb-1"><strong>@Model.User.FirstName @Model.User.LastName</strong></p>
+                <p class="mb-1">@Model.User.Email</p>
+                @if (!string.IsNullOrEmpty(Model.User.PhoneNumber))
+                {
+                    <p class="mb-1">@Model.User.PhoneNumber</p>
+                }
             </div>
+            <div class="col-6 text-end">
+                <h6 class="text-muted mb-3">RECEIPT DETAILS</h6>
+                <p class="mb-1"><strong>Receipt No:</strong> @(payment?.TransactionReference ?? "N/A")</p>
+                <p class="mb-1"><strong>Payment Date:</strong> @(payment?.PaymentDate.ToString("dd MMMM yyyy") ?? DateTime.Now.ToString("dd MMMM yyyy"))</p>
+                <p class="mb-1"><strong>Payment Method:</strong> @(payment?.PaymentMethod ?? "Card")</p>
+            </div>
+        </div>
+
+        <!-- Amount Display -->
+        <div class="amount-display">
+            <p class="text-muted mb-2">TOTAL AMOUNT PAID</p>
+            <p class="amount-value mb-0">R @(payment?.Amount.ToString("F2") ?? Model.MembershipPlan.Price.ToString("F2"))</p>
+            <p class="text-success mt-2 mb-0">
+                <i class="bi bi-check-circle-fill me-1"></i>@(payment?.Status ?? "Completed")
+            </p>
+        </div>
+
+        <!-- Subscription Details -->
+        <h6 class="fw-bold mb-3">SUBSCRIPTION DETAILS</h6>
+        <div class="receipt-details">
+            <div class="detail-row">
+                <span class="detail-label">Membership Plan</span>
+                <span class="detail-value">@Model.MembershipPlan.Name</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Description</span>
+                <span class="detail-value">@Model.MembershipPlan.Description</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Subscription Period</span>
+                <span class="detail-value">
+                    @Model.StartDate.ToString("dd MMM yyyy") - @Model.EndDate.ToString("dd MMM yyyy")
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Duration</span>
+                <span class="detail-value">@Model.MembershipPlan.DurationInMonths months (@((Model.EndDate - Model.StartDate).Days) days)</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status</span>
+                <span class="detail-value">
+                    @if (Model.EndDate > DateTime.Now)
+                    {
+                        <span class="text-success">Active</span>
+                    }
+                    else
+                    {
+                        <span class="text-danger">Expired</span>
+                    }
+                </span>
+            </div>
+        </div>
+
+        <!-- Payment Details -->
+        <h6 class="fw-bold mb-3 mt-4">PAYMENT DETAILS</h6>
+        <div class="receipt-details">
+            <div class="detail-row">
+                <span class="detail-label">Bank</span>
+                <span class="detail-value">@(payment?.BankName ?? "N/A")</span>
+            </div>
+            @if (!string.IsNullOrEmpty(payment?.CardHolderName))
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Card Holder</span>
+                    <span class="detail-value">@payment.CardHolderName</span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(payment?.CardNumber))
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Card Number</span>
+                    <span class="detail-value">@payment.CardNumber</span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(payment?.AccountNumber))
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Account Number</span>
+                    <span class="detail-value">@payment.AccountNumber</span>
+                </div>
+            }
+        </div>
+
+        <!-- Receipt Footer -->
+        <div class="text-center mt-4">
+            <div class="barcode">
+                ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+                <br />
+                @(payment?.TransactionReference ?? Model.Id.ToString())
+            </div>
+            <p class="text-muted mb-0">Thank you for your payment!</p>
+            <p class="text-muted">For any queries, please contact us at +27 11 234 5678</p>
+            <hr>
+            <p class="text-muted small mb-0">This is a computer-generated receipt and does not require a signature.</p>
+            <p class="text-muted small">Generated on @DateTime.Now.ToString("dd MMM yyyy HH:mm:ss")</p>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Auto print option (optional - uncomment if you want auto-print)
+        /*
+        setTimeout(function() {
+            if (confirm('Do you want to print your receipt?')) {
+                window.print();
+            }
+        }, 500);
+        */
+    </script>
+}
