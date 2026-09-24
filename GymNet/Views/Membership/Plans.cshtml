@@ -2,7 +2,6 @@
 @{
     ViewBag.Title = "Membership Plans";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var signupOpen = (bool)ViewBag.SignupOpen;
 }
 
 <section class="py-5" style="margin-top: 80px;">
@@ -12,46 +11,18 @@
             <p class="text-muted">Choose the plan that works best for you</p>
         </div>
 
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger text-center mb-4">@TempData["ErrorMessage"]</div>
-        }
-
-        @if (!signupOpen)
-        {
-            <div class="alert alert-warning text-center mb-4">
-                <i class="bi bi-lock-fill me-1"></i> @ViewBag.LockedMessage
-                <span class="d-block small mt-1">The Monthly plan is available year-round and isn't affected by this.</span>
-            </div>
-        }
-        else
-        {
-            <div class="alert alert-success text-center mb-4">
-                <i class="bi bi-unlock-fill me-1"></i> Semester sign-up is open now. <span class="text-muted">@ViewBag.SignupWindows</span>
-            </div>
-        }
-
         <div class="row g-4">
             @foreach (var plan in Model)
             {
                 <div class="col-md-4">
-                    <div class="card h-100 shadow-sm @(plan.IsLocked ? "opacity-75" : "")">
+                    <div class="card h-100 shadow-sm">
                         <div class="card-body text-center p-4">
                             <h5 class="fw-bold">@plan.Name</h5>
                             <h2 class="fw-bold my-3">R@(plan.Price.ToString("F2"))<span class="fs-6 text-muted">/@plan.DurationInMonths months</span></h2>
                             <p class="text-muted mb-4">@plan.Description</p>
                             @if (User.Identity.IsAuthenticated && User.IsInRole("Member"))
                             {
-                                if (!plan.IsLocked)
-                                {
-                                    <a href="@Url.Action("SelectPlan", "Membership", new { id = plan.Id })" class="btn btn-danger w-100">Choose Plan</a>
-                                }
-                                else
-                                {
-                                    <button type="button" class="btn btn-secondary w-100" disabled>
-                                        <i class="bi bi-lock-fill me-1"></i> Locked
-                                    </button>
-                                }
+                                <a href="@Url.Action("SelectPlan", "Membership", new { id = plan.Id })" class="btn btn-danger w-100">Choose Plan</a>
                             }
                             else if (!User.Identity.IsAuthenticated)
                             {

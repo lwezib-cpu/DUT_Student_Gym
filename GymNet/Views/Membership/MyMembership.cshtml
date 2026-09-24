@@ -8,13 +8,6 @@
 <h2 class="fw-bold mb-1">My Membership</h2>
 <p class="text-muted mb-4">View your current membership details and status.</p>
 
-@if (Model.Status == "Active")
-{
-    <a href="@Url.Action("MembershipCard", "Membership")" class="btn btn-outline-danger btn-sm mb-3">
-        <i class="bi bi-credit-card-2-front me-1"></i>View Membership Card
-    </a>
-}
-
 <div class="row g-4">
     <!-- Membership Details Card -->
     <div class="col-md-8">
@@ -78,12 +71,8 @@
                             @if (Model.DaysRemaining > 0)
                             {
                                 <strong class="@(Model.DaysRemaining <= 7 ? "text-danger" : "text-success")">
-                                    @Model.DaysRemaining day@(Model.DaysRemaining == 1 ? "" : "s")
+                                    @Model.DaysRemaining days
                                 </strong>
-                            }
-                            else if (Model.EndDate > DateTime.Now)
-                            {
-                                <strong class="text-danger">Last day - ends tonight</strong>
                             }
                             else
                             {
@@ -93,8 +82,8 @@
 
                         <div class="progress mb-3" style="height: 10px;">
                             @{
-                                var totalDays = (Model.EndDate.Date - Model.StartDate.Date).Days;
-                                var elapsedDays = Math.Min(totalDays, Math.Max(0, (DateTime.Today - Model.StartDate.Date).Days));
+                                var totalDays = (Model.EndDate - Model.StartDate).Days;
+                                var elapsedDays = (DateTime.Now - Model.StartDate).Days;
                                 var progressPercentage = totalDays > 0 ? (int)((double)elapsedDays / totalDays * 100) : 0;
                                 var progressColor = Model.DaysRemaining > 30 ? "bg-success" :
                                                    Model.DaysRemaining > 7 ? "bg-warning" : "bg-danger";

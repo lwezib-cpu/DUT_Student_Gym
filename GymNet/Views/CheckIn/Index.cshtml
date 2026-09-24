@@ -58,22 +58,7 @@
 
                 <hr>
 
-                @if (Model.IsCheckedInNow)
-                {
-                    <div class="alert alert-success">
-                        <i class="bi bi-stopwatch me-2"></i>
-                        You checked in at @Model.OpenCheckInTime.Value.ToString("HH:mm")
-                    </div>
-                    <div class="text-center mb-3">
-                        <div class="text-muted small">Time in gym</div>
-                        <div id="liveTimer" class="fw-bold" style="font-size: 2rem;" data-checkin="@Model.OpenCheckInTime.Value.ToString("o")">00:00:00</div>
-                    </div>
-                    <button type="button" class="btn btn-outline-danger w-100" onclick="checkOut()">
-                        <i class="bi bi-box-arrow-right me-1"></i>Check Out
-                    </button>
-                    <div id="checkoutResult" class="mt-2"></div>
-                }
-                else if (Model.CanCheckIn)
+                @if (Model.CanCheckIn)
                 {
                     <div class="alert alert-success">
                         <i class="bi bi-check-circle me-2"></i>
@@ -91,18 +76,6 @@
                         <i class="bi bi-grid me-1"></i>View Membership Plans
                     </a>
                 }
-
-                <hr>
-                <div class="row text-center">
-                    <div class="col-6">
-                        <small class="text-muted d-block">This Month</small>
-                        <strong>@(Model.TotalMinutesThisMonth / 60)h @(Model.TotalMinutesThisMonth % 60)m</strong>
-                    </div>
-                    <div class="col-6">
-                        <small class="text-muted d-block">All Time</small>
-                        <strong>@(Model.TotalMinutesAllTime / 60)h @(Model.TotalMinutesAllTime % 60)m</strong>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -111,15 +84,7 @@
     <div class="col-md-7">
         <div class="card shadow-sm h-100">
             <div class="card-body p-4 text-center">
-                @if (Model.IsCheckedInNow)
-                {
-                    <div class="d-flex flex-column align-items-center justify-content-center h-100">
-                        <i class="bi bi-person-walking text-success" style="font-size: 80px;"></i>
-                        <h5 class="text-muted mt-3">You're in the gym</h5>
-                        <p class="text-muted">Use the Check Out button when you leave.</p>
-                    </div>
-                }
-                else if (Model.CanCheckIn)
+                @if (Model.CanCheckIn)
                 {
                     <h5 class="fw-bold mb-3">Scan QR Code</h5>
                     <p class="text-muted mb-4">Point your camera at the QR code displayed at the gym entrance.</p>
@@ -235,49 +200,6 @@
         });
     }
 
-    function checkOut() {
-        fetch('@Url.Action("CheckOut", "CheckIn")', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'RequestVerificationToken': '@Html.AntiForgeryToken().ToString()'
-            },
-            body: new URLSearchParams({
-                '__RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            const resultDiv = document.getElementById('checkoutResult');
-            if (resultDiv) {
-                resultDiv.innerHTML = '<div class="alert ' + (data.Success ? 'alert-success' : 'alert-danger') + '">' + data.Message + '</div>';
-            }
-            if (data.Success) {
-                setTimeout(() => { window.location.reload(); }, 1500);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }
-
-    function startLiveTimer() {
-        const el = document.getElementById('liveTimer');
-        if (!el) return;
-        const checkinTime = new Date(el.getAttribute('data-checkin'));
-
-        function tick() {
-            const diffMs = Math.max(0, new Date() - checkinTime);
-            const totalSeconds = Math.floor(diffMs / 1000);
-            const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-            const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-            const s = String(totalSeconds % 60).padStart(2, '0');
-            el.textContent = h + ':' + m + ':' + s;
-        }
-        tick();
-        setInterval(tick, 1000);
-    }
-
     function processManualQR() {
         const qrContent = document.getElementById('manualQRCode').value.trim();
         if (qrContent) {
@@ -289,10 +211,9 @@
 
     // Start scanner on page load
     document.addEventListener('DOMContentLoaded', function() {
-        @if (Model.CanCheckIn && !Model.IsCheckedInNow)
+        @if (Model.CanCheckIn)
         {
             <text>startScanner();</text>
         }
-        startLiveTimer();
     });
 </script>

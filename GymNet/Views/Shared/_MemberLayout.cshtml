@@ -1,5 +1,4 @@
 ﻿@using Microsoft.AspNet.Identity
-@using GymNet.Helpers
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,10 +21,7 @@
                 DUT<span class="text-danger">GYM</span>
             </a>
             <div class="d-flex align-items-center">
-                <button class="btn btn-sm btn-outline-light theme-toggle-btn me-3" type="button" title="Toggle light/dark mode">
-                    <i class="theme-toggle-icon bi bi-moon-stars-fill"></i>
-                </button>
-                <span class="text-light me-3 d-none d-md-inline">Hi, @User.Identity.GetFirstName()</span>
+                <span class="text-light me-3 d-none d-md-inline">Hi, @User.Identity.GetUserName()</span>
                 @using (Html.BeginForm("Logout", "Account", FormMethod.Post))
                 {
                     @Html.AntiForgeryToken()
@@ -52,42 +48,12 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link @(ViewBag.Active == "CheckIn" ? "active" : "")" href="@Url.Action("Index", "CheckIn")">
-                        <i class="bi bi-qr-code-scan me-2"></i> Check In / Out
+                        <i class="bi bi-qr-code-scan me-2"></i> Check In
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link @(ViewBag.Active == "CheckInHistory" ? "active" : "")" href="@Url.Action("History", "CheckIn")">
                         <i class="bi bi-calendar-check me-2"></i> Check-In History
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(ViewBag.Active == "Fitness" ? "active" : "")" href="@Url.Action("Index", "Fitness")">
-                        <i class="bi bi-clipboard2-pulse me-2"></i> Fitness Goals
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(ViewBag.Active == "MealBuilder" ? "active" : "")" href="@Url.Action("MealBuilder", "Fitness")">
-                        <i class="bi bi-basket2 me-2"></i> Build a Meal
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(ViewBag.Active == "Exercises" ? "active" : "")" href="@Url.Action("Index", "Exercise")">
-                        <i class="bi bi-person-arms-up me-2"></i> Exercises
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(ViewBag.Active == "Classes" ? "active" : "")" href="@Url.Action("Index", "Class")">
-                        <i class="bi bi-people me-2"></i> Classes
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(ViewBag.Active == "Equipment" ? "active" : "")" href="@Url.Action("Index", "Equipment")">
-                        <i class="bi bi-bicycle me-2"></i> Equipment Booking
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(ViewBag.Active == "Feedback" ? "active" : "")" href="@Url.Action("Feedback", "Member")">
-                        <i class="bi bi-chat-square-text me-2"></i> Trainer Feedback
                     </a>
                 </li>
                 <li class="nav-item">
@@ -135,51 +101,6 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
-    @Html.Raw("<script src=\"https://cdn.jsdelivr.net/npm/@lottiefiles/lottie-player@2.0.8/dist/lottie-player.js\"></script>")
-    <script src="~/Scripts/theme-toggle.js"></script>
     @RenderSection("scripts", required: false)
-
-<!-- ============ FAQ CHAT BOT ============ -->
-<button type="button" id="gnChatToggle" class="gn-chat-toggle" title="Chat with GymNet Assistant">
-    <span class="gn-robot">
-        <span class="gn-robot-antenna"></span>
-        <span class="gn-robot-head">
-            <span class="gn-robot-eye"></span>
-            <span class="gn-robot-eye"></span>
-            <span class="gn-robot-mouth"></span>
-        </span>
-    </span>
-</button>
-<div id="gnChatPanel" class="gn-chat-panel">
-    <div class="gn-chat-header">
-        <span>🤖 GymNet Assistant</span>
-        <div>
-            <button type="button" id="gnChatVoiceToggle" title="Turn voice answers on/off">
-                <svg id="gnVoiceIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M4 9v6h4l5 5V4L8 9H4z"/>
-                    <path d="M16.5 12a4.5 4.5 0 0 0-2.5-4.03v8.06A4.5 4.5 0 0 0 16.5 12z"/>
-                    <path d="M14 4.55v2.06a7 7 0 0 1 0 10.78v2.06A9 9 0 0 0 14 4.55z"/>
-                </svg>
-            </button>
-            <button type="button" id="gnChatClose" title="Close">&times;</button>
-        </div>
-    </div>
-    <div id="gnChatLog" class="gn-chat-log"></div>
-    <div class="gn-chat-input-row">
-        <button type="button" id="gnChatMic" title="Speak your question">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/>
-                <path d="M19 11a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V20H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-2.08A7 7 0 0 0 19 11z"/>
-            </svg>
-        </button>
-        <input type="text" id="gnChatInput" placeholder="Ask a question..." />
-        <button type="button" id="gnChatSend" title="Send">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M2 12l19-9-5 9 5 9-19-9zm4.5 0l9.5 4.3L12.5 12 16 7.7 6.5 12z"/>
-            </svg>
-        </button>
-    </div>
-</div>
-<script src="~/Scripts/chatbot.js"></script>
 </body>
 </html>

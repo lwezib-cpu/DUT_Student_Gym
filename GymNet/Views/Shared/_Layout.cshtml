@@ -93,50 +93,6 @@
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @Scripts.Render("~/bundles/site")
-    <script src="~/Scripts/theme-toggle.js"></script>
     @RenderSection("scripts", required: false)
-
-<!-- ============ FAQ CHAT BOT ============ -->
-<button type="button" id="gnChatToggle" class="gn-chat-toggle" title="Chat with GymNet Assistant">
-    <span class="gn-robot">
-        <span class="gn-robot-antenna"></span>
-        <span class="gn-robot-head">
-            <span class="gn-robot-eye"></span>
-            <span class="gn-robot-eye"></span>
-            <span class="gn-robot-mouth"></span>
-        </span>
-    </span>
-</button>
-<div id="gnChatPanel" class="gn-chat-panel">
-    <div class="gn-chat-header">
-        <span>🤖 GymNet Assistant</span>
-        <div>
-            <button type="button" id="gnChatVoiceToggle" title="Turn voice answers on/off">
-                <svg id="gnVoiceIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M4 9v6h4l5 5V4L8 9H4z"/>
-                    <path d="M16.5 12a4.5 4.5 0 0 0-2.5-4.03v8.06A4.5 4.5 0 0 0 16.5 12z"/>
-                    <path d="M14 4.55v2.06a7 7 0 0 1 0 10.78v2.06A9 9 0 0 0 14 4.55z"/>
-                </svg>
-            </button>
-            <button type="button" id="gnChatClose" title="Close">&times;</button>
-        </div>
-    </div>
-    <div id="gnChatLog" class="gn-chat-log"></div>
-    <div class="gn-chat-input-row">
-        <button type="button" id="gnChatMic" title="Speak your question">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/>
-                <path d="M19 11a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V20H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-2.08A7 7 0 0 0 19 11z"/>
-            </svg>
-        </button>
-        <input type="text" id="gnChatInput" placeholder="Ask a question..." />
-        <button type="button" id="gnChatSend" title="Send">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M2 12l19-9-5 9 5 9-19-9zm4.5 0l9.5 4.3L12.5 12 16 7.7 6.5 12z"/>
-            </svg>
-        </button>
-    </div>
-</div>
-<script src="~/Scripts/chatbot.js"></script>
 </body>
 </html>

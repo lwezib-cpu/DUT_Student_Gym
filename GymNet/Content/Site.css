@@ -1,63 +1,8 @@
-﻿/* ===== GymNet Custom Styles =====
-   Palette: Ink #13241F | Teal #0E8F6E | Teal-deep #0B7259 | Gold #E2A63B
-            | Berry #9C3357 | Mist #F5F7F6
-   Mapping: solid "danger" buttons = primary teal action; outline "danger" buttons
-   = caution/destructive action (berry); bg/text/border/alert "danger" = problem
-   states (berry); dark surfaces (navbar/sidebar) = ink. See chat notes for why. */
-
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-
-:root {
-    /* Brand */
-    --bs-primary: #0E8F6E;
-    --bs-primary-rgb: 14, 143, 110;
-    --bs-primary-text-emphasis: #0B7259;
-    --bs-primary-bg-subtle: #E3F3EE;
-    --bs-primary-border-subtle: #B7DFD2;
-
-    /* Accent (used sparingly - badges, achievements) */
-    --bs-warning: #E2A63B;
-    --bs-warning-rgb: 226, 166, 59;
-    --bs-warning-text-emphasis: #8A5F14;
-    --bs-warning-bg-subtle: #FBEFD9;
-    --bs-warning-border-subtle: #F0D6A0;
-
-    /* Problem states (expired / locked / errors) */
-    --bs-danger: #9C3357;
-    --bs-danger-rgb: 156, 51, 87;
-    --bs-danger-text-emphasis: #6E2440;
-    --bs-danger-bg-subtle: #F3DDE5;
-    --bs-danger-border-subtle: #E2AFC2;
-
-    /* Dark surfaces (navbar / sidebar) */
-    --bs-dark: #13241F;
-    --bs-dark-rgb: 19, 36, 31;
-
-    --bs-body-font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --bs-body-color: #1B2A26;
-    --bs-link-color: #0E8F6E;
-    --bs-link-hover-color: #0B7259;
-    --bs-border-radius: 0.6rem;
-    --bs-border-radius-lg: 0.85rem;
-    --bs-border-radius-sm: 0.4rem;
-
-    --gn-ink: #13241F;
-    --gn-teal: #0E8F6E;
-    --gn-teal-deep: #0B7259;
-    --gn-gold: #E2A63B;
-    --gn-berry: #9C3357;
-    --gn-mist: #F5F7F6;
-}
+﻿/* ===== GymNet Custom Styles ===== */
 
 body {
     padding-top: 56px; /* offset for fixed navbar */
     scroll-behavior: smooth;
-    background-color: #fff;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    font-weight: 700;
-    letter-spacing: -0.3px;
 }
 
 section h2 {
@@ -65,8 +10,7 @@ section h2 {
 }
 
 .navbar-brand {
-    letter-spacing: 0.5px;
-    font-weight: 800;
+    letter-spacing: 1px;
 }
 
 /* Smooth section anchor offset so fixed navbar doesn't cover headings */
@@ -74,60 +18,14 @@ section[id] {
     scroll-margin-top: 70px;
 }
 
-/* ===== Buttons =====
-   Solid "danger" = primary action (was the app's default CTA color).
-   Outline "danger" = caution/destructive action (Cancel, Leave, Return, Check Out). */
-.btn {
-    font-weight: 600;
-    border-radius: 0.6rem;
-}
-
-.btn-danger {
-    --bs-btn-color: #fff;
-    --bs-btn-bg: #0E8F6E;
-    --bs-btn-border-color: #0E8F6E;
-    --bs-btn-hover-color: #fff;
-    --bs-btn-hover-bg: #0B7259;
-    --bs-btn-hover-border-color: #0A6650;
-    --bs-btn-focus-shadow-rgb: 14, 143, 110;
-    --bs-btn-active-color: #fff;
-    --bs-btn-active-bg: #0A6650;
-    --bs-btn-active-border-color: #095A47;
-    --bs-btn-disabled-color: #fff;
-    --bs-btn-disabled-bg: #0E8F6E;
-    --bs-btn-disabled-border-color: #0E8F6E;
-}
-
-.btn-outline-danger {
-    --bs-btn-color: #9C3357;
-    --bs-btn-border-color: #9C3357;
-    --bs-btn-hover-color: #fff;
-    --bs-btn-hover-bg: #9C3357;
-    --bs-btn-hover-border-color: #9C3357;
-    --bs-btn-focus-shadow-rgb: 156, 51, 87;
-    --bs-btn-active-color: #fff;
-    --bs-btn-active-bg: #9C3357;
-    --bs-btn-active-border-color: #9C3357;
-    --bs-btn-disabled-color: #9C3357;
-    --bs-btn-disabled-bg: transparent;
-    --bs-btn-disabled-border-color: #9C3357;
-}
-
-/* ===== Cards - one consistent hover-lift across the whole app ===== */
 .card {
-    border: 1px solid rgba(19, 36, 31, 0.08);
-    border-radius: 0.85rem;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    transition: transform 0.2s ease-in-out;
 }
 
-.card.shadow-sm {
-    box-shadow: 0 2px 10px rgba(19, 36, 31, 0.06) !important;
-}
+    .card:hover {
+        transform: translateY(-4px);
+    }
 
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 24px rgba(19, 36, 31, 0.12) !important;
-}
 
 /* ===== Dashboard Layout ===== */
 .dashboard-topbar {
@@ -137,7 +35,7 @@ section[id] {
 
 .dashboard-sidebar {
     width: 250px;
-    background-color: var(--gn-ink);
+    background-color: #212529;
 }
 
 @media (min-width: 992px) {
@@ -159,41 +57,40 @@ section[id] {
     margin-top: 60px;
     padding: 30px;
     min-height: calc(100vh - 60px);
-    background-color: var(--gn-mist);
+    background-color: #f8f9fa;
 }
 
 .dashboard-nav .nav-link {
-    color: rgba(245, 247, 246, 0.65);
-    padding: 12px 18px;
-    margin: 2px 12px;
-    border-radius: 0.5rem;
-    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+    color: #ced4da;
+    padding: 12px 20px;
+    border-left: 3px solid transparent;
 }
 
     .dashboard-nav .nav-link:hover:not(.disabled) {
-        background-color: rgba(245, 247, 246, 0.08);
+        background-color: rgba(255, 255, 255, 0.05);
         color: #fff;
     }
 
     .dashboard-nav .nav-link.active {
         color: #fff;
-        background-color: var(--gn-teal);
+        border-left-color: #dc3545;
+        background-color: rgba(220, 53, 69, 0.15);
     }
 
     .dashboard-nav .nav-link.disabled {
-        color: rgba(245, 247, 246, 0.35);
+        color: #6c757d;
         cursor: not-allowed;
     }
 
 .stat-card {
     border: none;
-    border-radius: 0.85rem;
+    border-radius: 12px;
 }
 
 .stat-icon {
     width: 56px;
     height: 56px;
-    border-radius: 0.85rem;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -210,325 +107,4 @@ section[id] {
     font-weight: bold;
     font-size: 18px;
     flex-shrink: 0;
-}
-/* Animated icons for Exercise and Equipment cards (see step-6 chat notes:
-   no real photos/GIFs are hotlinked here on purpose - copyright + reliability). */
-.icon-anim-bounce {
-    display: inline-block;
-    animation: iconBounce 1.6s ease-in-out infinite;
-}
-.icon-anim-pulse {
-    display: inline-block;
-    animation: iconPulse 1.4s ease-in-out infinite;
-}
-.icon-anim-sway {
-    display: inline-block;
-    animation: iconSway 1.8s ease-in-out infinite;
-}
-@keyframes iconBounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-}
-@keyframes iconPulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.15); opacity: 0.75; }
-}
-@keyframes iconSway {
-    0%, 100% { transform: rotate(-8deg); }
-    50% { transform: rotate(8deg); }
-}
-
-/* ===== Light / Dark mode =====
-   Uses Bootstrap 5.3's built-in [data-bs-theme] attribute, toggled by
-   Scripts/theme-toggle.js and remembered per-browser via localStorage. */
-:root,
-[data-bs-theme="light"] {
-    --gn-bg: #ffffff;
-    --gn-surface: #ffffff;
-    --gn-text: #1B2A26;
-    --gn-border: rgba(19, 36, 31, 0.08);
-}
-
-[data-bs-theme="dark"] {
-    --gn-bg: #10201B;
-    --gn-surface: #17271F;
-    --gn-text: #E8EDEB;
-    --gn-border: rgba(232, 237, 235, 0.10);
-
-    --bs-body-bg: #10201B;
-    --bs-body-color: #E8EDEB;
-
-    /* Slightly brightened accents so they still read clearly on a dark surface */
-    --bs-primary: #15A87F;
-    --bs-primary-rgb: 21, 168, 127;
-    --bs-warning: #EBB752;
-    --bs-warning-rgb: 235, 183, 82;
-    --bs-danger: #C2477A;
-    --bs-danger-rgb: 194, 71, 122;
-}
-
-[data-bs-theme="dark"] body {
-    background-color: var(--gn-bg);
-    color: var(--gn-text);
-}
-
-[data-bs-theme="dark"] .card {
-    background-color: var(--gn-surface);
-    border-color: var(--gn-border);
-    color: var(--gn-text);
-}
-
-[data-bs-theme="dark"] .dashboard-content {
-    background-color: var(--gn-bg);
-}
-
-[data-bs-theme="dark"] .btn-danger {
-    --bs-btn-bg: #15A87F;
-    --bs-btn-border-color: #15A87F;
-    --bs-btn-hover-bg: #12906D;
-    --bs-btn-hover-border-color: #12906D;
-    --bs-btn-active-bg: #12906D;
-    --bs-btn-active-border-color: #12906D;
-}
-
-[data-bs-theme="dark"] .btn-outline-danger {
-    --bs-btn-color: #C2477A;
-    --bs-btn-border-color: #C2477A;
-    --bs-btn-hover-bg: #C2477A;
-    --bs-btn-hover-border-color: #C2477A;
-    --bs-btn-active-bg: #C2477A;
-    --bs-btn-active-border-color: #C2477A;
-}
-
-[data-bs-theme="dark"] .table {
-    --bs-table-bg: transparent;
-    --bs-table-color: var(--gn-text);
-    --bs-table-border-color: var(--gn-border);
-}
-
-[data-bs-theme="dark"] .form-control,
-[data-bs-theme="dark"] .form-select {
-    background-color: var(--gn-surface);
-    border-color: var(--gn-border);
-    color: var(--gn-text);
-}
-
-[data-bs-theme="dark"] .text-muted {
-    color: rgba(232, 237, 235, 0.55) !important;
-}
-
-.theme-toggle-btn {
-    border-radius: 50%;
-    width: 34px;
-    height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-}
-
-/* ===== FAQ Chat Bot (Scripts/chatbot.js) ===== */
-.gn-chat-toggle {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background-color: var(--gn-teal);
-    border: none;
-    box-shadow: 0 6px 18px rgba(19, 36, 31, 0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1080;
-    cursor: pointer;
-    transition: transform 0.15s ease-in-out;
-    padding: 0;
-}
-.gn-chat-toggle:hover {
-    transform: scale(1.08);
-}
-/* Simple original robot-face mascot, built from basic shapes - antenna, head,
-   two eyes, a small mouth. Not based on any existing character design. */
-.gn-robot {
-    position: relative;
-    width: 34px;
-    height: 30px;
-}
-.gn-robot-antenna {
-    position: absolute;
-    top: -9px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 3px;
-    height: 8px;
-    background-color: #fff;
-    border-radius: 2px;
-}
-.gn-robot-antenna::before {
-    content: "";
-    position: absolute;
-    top: -5px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: var(--gn-gold);
-}
-.gn-robot-head {
-    width: 34px;
-    height: 26px;
-    background-color: #fff;
-    border-radius: 10px;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-.gn-robot-eye {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: var(--gn-teal);
-}
-.gn-robot-mouth {
-    position: absolute;
-    bottom: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 12px;
-    height: 3px;
-    border-radius: 2px;
-    background-color: var(--gn-gold);
-}
-.gn-chat-panel {
-    display: none;
-    position: fixed;
-    bottom: 90px;
-    right: 24px;
-    width: 320px;
-    max-width: calc(100vw - 32px);
-    height: 420px;
-    max-height: calc(100vh - 140px);
-    background-color: var(--gn-surface);
-    color: var(--gn-text);
-    border-radius: 0.85rem;
-    box-shadow: 0 12px 32px rgba(19, 36, 31, 0.25);
-    z-index: 1080;
-    flex-direction: column;
-    overflow: hidden;
-    border: 1px solid var(--gn-border);
-}
-.gn-chat-header {
-    background-color: var(--gn-teal);
-    color: #fff;
-    padding: 12px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 700;
-}
-.gn-chat-header button {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 1.2rem;
-    cursor: pointer;
-    line-height: 1;
-}
-.gn-chat-log {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.gn-chat-row {
-    display: flex;
-}
-.gn-chat-row.gn-chat-user {
-    justify-content: flex-end;
-}
-.gn-chat-bubble {
-    max-width: 80%;
-    padding: 8px 12px;
-    border-radius: 0.7rem;
-    font-size: 0.9rem;
-    line-height: 1.35;
-}
-.gn-chat-bot .gn-chat-bubble {
-    background-color: var(--gn-mist);
-    color: var(--gn-text);
-    border: 1px solid var(--gn-border);
-}
-[data-bs-theme="dark"] .gn-chat-bot .gn-chat-bubble {
-    background-color: var(--gn-bg);
-}
-.gn-chat-user .gn-chat-bubble {
-    background-color: var(--gn-teal);
-    color: #fff;
-}
-.gn-chat-input-row {
-    display: flex;
-    border-top: 1px solid var(--gn-border);
-    padding: 8px;
-    gap: 6px;
-}
-.gn-chat-input-row input {
-    flex: 1;
-    border: 1px solid var(--gn-border);
-    border-radius: 0.5rem;
-    padding: 6px 10px;
-    background-color: var(--gn-surface);
-    color: var(--gn-text);
-}
-.gn-chat-input-row button {
-    background-color: var(--gn-teal);
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    cursor: pointer;
-    flex-shrink: 0;
-}
-#gnChatSend {
-    border-radius: 0.35rem;
-    clip-path: polygon(0% 15%, 60% 15%, 60% 0%, 100% 50%, 60% 100%, 60% 85%, 0% 85%);
-    width: 40px;
-}
-#gnChatSend:hover {
-    background-color: var(--gn-teal-deep, #0B7259);
-}
-#gnChatMic {
-    background-color: transparent;
-    color: var(--gn-teal);
-    border: 1px solid var(--gn-border);
-}
-#gnChatMic.gn-mic-active {
-    background-color: var(--gn-berry);
-    color: #fff;
-    border-color: var(--gn-berry);
-    animation: iconPulse 1s ease-in-out infinite;
-}
-#gnChatVoiceToggle {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 1.1rem;
-    cursor: pointer;
-    line-height: 1;
-    padding: 0 6px;
-}
-#gnChatVoiceToggle.gn-voice-off {
-    opacity: 0.5;
 }

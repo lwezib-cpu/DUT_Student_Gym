@@ -1,46 +1,8 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace GymNet.ViewModels
 {
-    /// <summary>
-    /// Validates a DUT student email: studentnumber@dut4life.ac.za
-    /// (student number = 7 to 9 digits).
-    /// </summary>
-    public class StudentEmailAttribute : ValidationAttribute
-    {
-        public const string Domain = "@dut4life.ac.za";
-
-        private static readonly Regex Pattern =
-            new Regex(@"^\d{7,9}@dut4life\.ac\.za$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-        public StudentEmailAttribute()
-            : base("Use your DUT student email: studentnumber@dut4life.ac.za")
-        {
-        }
-
-        public override bool IsValid(object value)
-        {
-            var text = value as string;
-            if (string.IsNullOrWhiteSpace(text)) return true; // [Required] handles empty values
-            return Pattern.IsMatch(text.Trim());
-        }
-
-        /// <summary>
-        /// Trims, lower-cases and, if only a student number was typed,
-        /// appends the DUT student email domain.
-        /// </summary>
-        public static string Normalize(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input)) return input;
-            var text = input.Trim().ToLowerInvariant();
-            if (text.All(char.IsDigit)) text += Domain;
-            return text;
-        }
-    }
-
     public class RegisterViewModel
     {
         [Required(ErrorMessage = "First name is required")]
@@ -53,9 +15,9 @@ namespace GymNet.ViewModels
         [Display(Name = "Last Name")]
         public string LastName { get; set; }
 
-        [Required(ErrorMessage = "Student email is required")]
-        [StudentEmail]
-        [Display(Name = "Student Email")]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Enter a valid email address")]
+        [Display(Name = "Email Address")]
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Phone number is required")]
@@ -91,10 +53,9 @@ namespace GymNet.ViewModels
 
     public class LoginViewModel
     {
-        // Students log in with their student number or full student email.
-        // Admin/trainer accounts can still use their normal email address.
-        [Required(ErrorMessage = "Student number or email is required")]
-        [Display(Name = "Student Number or Email")]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Enter a valid email address")]
+        [Display(Name = "Email Address")]
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Password is required")]

@@ -29,7 +29,7 @@
 
                 <div class="col-md-6">
                     @Html.LabelFor(m => m.Email, new { @class = "form-label" })
-                    @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "21234567@dut4life.ac.za", type = "email", pattern = "[0-9]{7,9}@[dD][uU][tT]4[lL][iI][fF][eE]\\.ac\\.za", title = "Use your DUT student email: studentnumber@dut4life.ac.za" })
+                    @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "you@example.com", type = "email" })
                     @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
                 </div>
                 <div class="col-md-6">

@@ -22,12 +22,6 @@ namespace GymNet.Models
         [StringLength(200)]
         public string Notes { get; set; }
 
-        // Set when the member checks out (or is auto-checked-out). Null while still in the gym.
-        public DateTime? CheckOutTime { get; set; }
-
-        // Minutes spent in the gym for this visit, computed at check-out time.
-        public int? DurationMinutes { get; set; }
-
         // Navigation property
         [ForeignKey("UserId")]
         public virtual ApplicationUser User { get; set; }
