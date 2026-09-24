@@ -26,5 +26,31 @@ namespace GymNet.ViewModels
         public decimal TotalPayments { get; set; }
         public DateTime? LastPaymentDate { get; set; }
         public decimal LastPaymentAmount { get; set; }
+
+        // Currently checked in (for a visible Check Out shortcut on the dashboard)
+        public bool IsCheckedInNow { get; set; }
+        public DateTime? OpenCheckInTime { get; set; }
+
+        // Consistency badge
+        public int TotalCheckIns { get; set; }
+
+        // Expiry reminder - true when membership is active but running out soon
+        public bool IsExpiringSoon => HasActiveMembership && DaysRemaining > 0 && DaysRemaining <= 7;
+        public string BadgeName { get; set; }
+        public string BadgeCssClass { get; set; }
+        public string BadgeIcon { get; set; }
+        public int BadgeNextThreshold { get; set; }
+        public int BadgeProgressPercent { get; set; }
+    }
+
+    public class LeaderboardEntryViewModel
+    {
+        public int Rank { get; set; }
+        public string FullName { get; set; }
+        public int TotalCheckIns { get; set; }
+        public string BadgeName { get; set; }
+        public string BadgeCssClass { get; set; }
+        public string BadgeIcon { get; set; }
+        public bool IsCurrentUser { get; set; }
     }
 }

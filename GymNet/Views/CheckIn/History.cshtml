@@ -3,10 +3,139 @@
     ViewBag.Title = "Check-In History";
     ViewBag.Active = "CheckInHistory";
     Layout = "~/Views/Shared/_MemberLayout.cshtml";
+
+    // Declared here (the file's top-level code block) rather than nested inside
+    // @if (Model.Any()) { }, because a bare { } used deeper in the page is plain
+    // C# block syntax and scopes "var" to just that block - the top-level @{ }
+    // is a Razor transition marker instead, so anything declared here stays
+    // visible to markup anywhere else in the file.
+    var totalMinutesAllTime = Model.Where(c => c.DurationMinutes.HasValue).Sum(c => c.DurationMinutes.Value);
+    var monthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+    var totalMinutesThisMonth = Model.Where(c => c.DurationMinutes.HasValue && c.CheckInTime >= monthStart).Sum(c => c.DurationMinutes.Value);
 }
 
 <h2 class="fw-bold mb-1">Check-In History</h2>
 <p class="text-muted mb-4">Your gym attendance records.</p>
+
+@{
+    var calMonth = (int)ViewBag.CalendarMonth;
+    var calYear = (int)ViewBag.CalendarYear;
+    var checkedInDays = (List<int>)ViewBag.CheckedInDays;
+    var firstOfMonth = new DateTime(calYear, calMonth, 1);
+    var daysInMonth = DateTime.DaysInMonth(calYear, calMonth);
+    var startWeekday = (int)firstOfMonth.DayOfWeek; // 0 = Sunday
+    var prevMonth = calMonth == 1 ? 12 : calMonth - 1;
+    var prevYear = calMonth == 1 ? calYear - 1 : calYear;
+    var nextMonth = calMonth == 12 ? 1 : calMonth + 1;
+    var nextYear = calMonth == 12 ? calYear + 1 : calYear;
+    var today = DateTime.Today;
+}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="@Url.Action("History", "CheckIn", new { month = prevMonth, year = prevYear })" class="btn btn-outline-secondary">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+            <h4 class="fw-bold mb-0">@firstOfMonth.ToString("MMMM yyyy")</h4>
+            <a href="@Url.Action("History", "CheckIn", new { month = nextMonth, year = nextYear })" class="btn btn-outline-secondary">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+
+        <div class="gn-calendar">
+            <div class="gn-calendar-head">Sun</div>
+            <div class="gn-calendar-head">Mon</div>
+            <div class="gn-calendar-head">Tue</div>
+            <div class="gn-calendar-head">Wed</div>
+            <div class="gn-calendar-head">Thu</div>
+            <div class="gn-calendar-head">Fri</div>
+            <div class="gn-calendar-head">Sat</div>
+
+            @for (var i = 0; i < startWeekday; i++)
+            {
+                <div class="gn-calendar-cell gn-calendar-empty"></div>
+            }
+            @for (var day = 1; day <= daysInMonth; day++)
+            {
+                var isCheckedIn = checkedInDays.Contains(day);
+                var isToday = today.Year == calYear && today.Month == calMonth && today.Day == day;
+                <div class="gn-calendar-cell @(isCheckedIn ? "gn-calendar-checkedin" : "") @(isToday ? "gn-calendar-today" : "")">
+                    <span class="gn-calendar-daynum">@day</span>
+                    @if (isCheckedIn)
+                    {
+                        <i class="bi bi-check-circle-fill gn-calendar-check"></i>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="d-flex align-items-center gap-3 mt-3">
+            <span class="small text-muted"><span class="gn-calendar-legend gn-calendar-checkedin"></span> Checked in</span>
+            <span class="small text-muted"><span class="gn-calendar-legend gn-calendar-today"></span> Today</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .gn-calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+    }
+    .gn-calendar-head {
+        text-align: center;
+        font-weight: 700;
+        color: var(--gn-teal, #0E8F6E);
+        padding-bottom: 6px;
+        font-size: 0.9rem;
+    }
+    .gn-calendar-cell {
+        aspect-ratio: 1 / 1;
+        min-height: 44px;
+        max-width: 60px;
+        border-radius: 8px;
+        border: 1px solid var(--gn-border, #eee);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        font-size: 0.85rem;
+        margin: 0 auto;
+    }
+    .gn-calendar-empty {
+        border: none;
+    }
+    .gn-calendar-daynum {
+        font-weight: 600;
+    }
+    .gn-calendar-checkedin {
+        background-color: var(--gn-teal, #0E8F6E);
+        color: #fff;
+        border-color: var(--gn-teal, #0E8F6E);
+    }
+    .gn-calendar-check {
+        font-size: 0.9rem;
+        margin-top: 2px;
+    }
+    .gn-calendar-today:not(.gn-calendar-checkedin) {
+        border: 2px solid var(--gn-gold, #E2A63B);
+    }
+    .gn-calendar-legend {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        vertical-align: middle;
+        margin-right: 4px;
+    }
+    .gn-calendar-legend.gn-calendar-checkedin { background-color: var(--gn-teal, #0E8F6E); }
+    .gn-calendar-legend.gn-calendar-today { border: 2px solid var(--gn-gold, #E2A63B); background: transparent; }
+    @@media (max-width: 576px) {
+        .gn-calendar-cell { min-height: 34px; font-size: 0.75rem; }
+    }
+</style>
 
 @if (Model.Any())
 {
@@ -55,6 +184,26 @@
         </div>
     </div>
 
+    <!-- Time Spent Summary -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted mb-1">Time Spent This Month</h6>
+                    <h4 class="fw-bold mb-0">@(totalMinutesThisMonth / 60)h @(totalMinutesThisMonth % 60)m</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted mb-1">Time Spent All Time</h6>
+                    <h4 class="fw-bold mb-0">@(totalMinutesAllTime / 60)h @(totalMinutesAllTime % 60)m</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Check-In History Table -->
     <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -77,6 +226,8 @@
                             <th>Day</th>
                             <th>Method</th>
                             <th>QR Code</th>
+                            <th>Check-Out</th>
+                            <th>Duration</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -103,6 +254,26 @@
                                     }
                                 </td>
                                 <td><small class="text-muted">@checkIn.QRCode</small></td>
+                                <td>
+                                    @if (checkIn.CheckOutTime.HasValue)
+                                    {
+                                        @checkIn.CheckOutTime.Value.ToString("HH:mm:ss")
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">Still in gym</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (checkIn.DurationMinutes.HasValue)
+                                    {
+                                        @(checkIn.DurationMinutes.Value / 60)<text>h </text>@(checkIn.DurationMinutes.Value % 60)<text>m</text>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
                             </tr>
                             index++;
                         }

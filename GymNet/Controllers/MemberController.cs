@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using GymNet.Data;
+using GymNet.Helpers;
 using GymNet.Models;
 using GymNet.ViewModels;
 
@@ -44,6 +46,14 @@ namespace GymNet.Controllers
             var lastPayment = await db.Payments
                 .Where(p => p.MemberMembership.UserId == userId && p.Status == "Completed")
                 .OrderByDescending(p => p.PaymentDate)
+                .FirstOrDefaultAsync();
+
+            var totalCheckIns = await db.CheckIns.CountAsync(c => c.UserId == userId);
+            var badge = BadgeCalculator.ForCheckInCount(totalCheckIns);
+
+            var openCheckIn = await db.CheckIns
+                .Where(c => c.UserId == userId && c.CheckOutTime == null)
+                .OrderByDescending(c => c.CheckInTime)
                 .FirstOrDefaultAsync();
 
             // Determine payment status
@@ -102,7 +112,7 @@ namespace GymNet.Controllers
                 MembershipStatus = membershipStatus,
                 MembershipPlan = latestMembership?.MembershipPlan?.Name ?? "No Plan",
                 MembershipEndDate = latestMembership?.EndDate,
-                DaysRemaining = latestMembership != null ? (latestMembership.EndDate - DateTime.Now).Days : 0,
+                DaysRemaining = latestMembership != null ? SemesterCalendar.DaysRemaining(latestMembership.EndDate) : 0,
                 HasActiveMembership = latestMembership != null &&
                                      latestMembership.Status == "Active" &&
                                      latestMembership.EndDate > DateTime.Now,
@@ -112,7 +122,17 @@ namespace GymNet.Controllers
                 PaymentStatus = paymentStatus,
                 TotalPayments = totalPayments,
                 LastPaymentDate = lastPayment?.PaymentDate,
-                LastPaymentAmount = lastPayment?.Amount ?? 0
+                LastPaymentAmount = lastPayment?.Amount ?? 0,
+
+                IsCheckedInNow = openCheckIn != null,
+                OpenCheckInTime = openCheckIn?.CheckInTime,
+
+                TotalCheckIns = totalCheckIns,
+                BadgeName = badge.Name,
+                BadgeCssClass = badge.CssClass,
+                BadgeIcon = badge.Icon,
+                BadgeNextThreshold = badge.NextThreshold,
+                BadgeProgressPercent = badge.ProgressPercent
             };
 
             return View(model);
@@ -155,7 +175,7 @@ namespace GymNet.Controllers
                 StartDate = membership.StartDate,
                 EndDate = membership.EndDate,
                 Status = membership.Status,
-                DaysRemaining = (membership.EndDate - DateTime.Now).Days,
+                DaysRemaining = SemesterCalendar.DaysRemaining(membership.EndDate),
                 PaymentStatus = latestPayment?.Status ?? "No Payment",
                 LastPaymentDate = latestPayment?.PaymentDate,
                 LastPaymentAmount = latestPayment?.Amount ?? 0,
@@ -166,6 +186,28 @@ namespace GymNet.Controllers
 
             return View(model);
         }
+
+        // GET: /Member/Feedback - feedback trainers have left for this member
+        public async Task<ActionResult> Feedback()
+        {
+            var userId = User.Identity.GetUserId();
+
+            var feedback = await db.TrainerFeedbacks
+                .Include(f => f.Trainer)
+                .Where(f => f.MemberId == userId)
+                .OrderByDescending(f => f.CreatedAt)
+                .Select(f => new TrainerFeedbackListItemViewModel
+                {
+                    TrainerName = f.Trainer.FirstName + " " + f.Trainer.LastName,
+                    Comment = f.Comment,
+                    Rating = f.Rating,
+                    CreatedAt = f.CreatedAt
+                })
+                .ToListAsync();
+
+            return View(feedback);
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)

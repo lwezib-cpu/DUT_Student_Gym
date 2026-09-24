@@ -1,0 +1,89 @@
+﻿﻿@model GymNet.ViewModels.AdminRegisterTrainerViewModel
+@{
+    ViewBag.Title = "Add Trainer";
+    ViewBag.Active = "ManageTrainers";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="fw-bold mb-1">Add Trainer</h2>
+<p class="text-muted mb-4">A temporary password will be generated and shown once - pass it along to the trainer.</p>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                @using (Html.BeginForm("RegisterTrainer", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            @Html.LabelFor(m => m.FirstName, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-6 mb-3">
+                            @Html.LabelFor(m => m.LastName, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.LastName, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger small" })
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.Email, new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email" })
+                        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.PhoneNumber, new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.Specialty, new { @class = "form-label" })
+                        @Html.DropDownListFor(m => m.Specialty, new SelectListItem[]
+                        {
+                            new SelectListItem { Text = "Select a specialty", Value = "" },
+                            new SelectListItem { Text = "Yoga", Value = "Yoga" },
+                            new SelectListItem { Text = "Fitness", Value = "Fitness" },
+                            new SelectListItem { Text = "Cardio", Value = "Cardio" },
+                            new SelectListItem { Text = "Basic Strength Training", Value = "Basic Strength Training" }
+                        }, new { @class = "form-select" })
+                        @Html.ValidationMessageFor(m => m.Specialty, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.Password, new { @class = "form-label" })
+                        @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small" })
+                        <small class="text-muted">Give this to the trainer directly so they can log in.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.ConfirmPassword, new { @class = "form-label" })
+                        @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Photo</label>
+                        <input type="file" name="Photo" class="form-control" accept="image/*" />
+                        <small class="text-muted">Optional now - can be added later from Edit.</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger py-2">Add Trainer</button>
+                        <a href="@Url.Action("ManageTrainers", "Admin")" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

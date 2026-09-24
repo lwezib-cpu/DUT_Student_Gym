@@ -1,0 +1,65 @@
+﻿﻿@model List<GymNet.ViewModels.LeaderboardEntryViewModel>
+@{
+    ViewBag.Title = "Leaderboard";
+    ViewBag.Active = "Leaderboard";
+    Layout = "~/Views/Shared/_MemberLayout.cshtml";
+}
+
+<h2 class="fw-bold mb-1">Leaderboard</h2>
+<p class="text-muted mb-4">Ranked by total gym check-ins. Keep showing up to climb the list.</p>
+
+@if (!Model.Any())
+{
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <p class="text-muted mb-0">No check-ins yet - be the first!</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Member</th>
+                        <th>Badge</th>
+                        <th>Check-Ins</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Model)
+                    {
+                        <tr class="@(e.IsCurrentUser ? "table-warning" : "")">
+                            <td class="fw-bold">
+                                @if (e.Rank <= 3)
+                                {
+                                    <span style="font-size:1.2rem;">
+                                        @(e.Rank == 1 ? "\U0001F947" : e.Rank == 2 ? "\U0001F948" : "\U0001F949")
+                                    </span>
+                                }
+                                else
+                                {
+                                    @e.Rank
+                                }
+                            </td>
+                            <td>
+                                @e.FullName
+                                @if (e.IsCurrentUser)
+                                {
+                                    <span class="badge bg-danger ms-1">You</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge @e.BadgeCssClass"><i class="bi @e.BadgeIcon me-1"></i>@e.BadgeName</span>
+                            </td>
+                            <td class="fw-bold">@e.TotalCheckIns</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

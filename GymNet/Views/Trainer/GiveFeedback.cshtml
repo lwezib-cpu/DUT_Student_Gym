@@ -1,0 +1,47 @@
+﻿﻿@model GymNet.ViewModels.GiveFeedbackViewModel
+@{
+    ViewBag.Title = "Give Feedback";
+    ViewBag.Active = "Members";
+    Layout = "~/Views/Shared/_TrainerLayout.cshtml";
+}
+
+<h2 class="fw-bold mb-1">Feedback for @Model.MemberName</h2>
+<p class="text-muted mb-4">This will show up on their dashboard.</p>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                @using (Html.BeginForm("GiveFeedback", "Trainer", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.MemberId)
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.Rating, new { @class = "form-label" })
+                        @Html.DropDownListFor(m => m.Rating, new SelectListItem[]
+                        {
+                            new SelectListItem { Text = "5 - Excellent", Value = "5" },
+                            new SelectListItem { Text = "4 - Good", Value = "4" },
+                            new SelectListItem { Text = "3 - Average", Value = "3" },
+                            new SelectListItem { Text = "2 - Needs Improvement", Value = "2" },
+                            new SelectListItem { Text = "1 - Poor", Value = "1" }
+                        }, new { @class = "form-select" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.Comment, new { @class = "form-label" })
+                        @Html.TextAreaFor(m => m.Comment, new { @class = "form-control", rows = 4, placeholder = "How are they progressing? Any tips?" })
+                        @Html.ValidationMessageFor(m => m.Comment, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger py-2">Send Feedback</button>
+                        <a href="@Url.Action("Members", "Trainer")" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,21 @@
+﻿<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+  <!-- Incline bench -->
+  <rect x="45" y="70" width="70" height="10" rx="3" fill="#13241F" opacity="0.85" transform="rotate(-22 80 75)"/>
+  <rect x="55" y="105" width="8" height="22" fill="#13241F" opacity="0.85"/>
+  <rect x="100" y="105" width="8" height="22" fill="#13241F" opacity="0.85"/>
+  <!-- Figure -->
+  <circle cx="60" cy="78" r="12" fill="#0E8F6E"/>
+  <rect x="66" y="80" width="50" height="13" rx="6" fill="#0E8F6E" transform="rotate(-22 91 86)"/>
+  <!-- Arms pressing dumbbells up -->
+  <rect x="90" y="45" width="9" height="32" rx="4" fill="#0E8F6E" transform="rotate(-6 94 61)"/>
+  <rect x="108" y="45" width="9" height="32" rx="4" fill="#0E8F6E" transform="rotate(6 112 61)"/>
+  <!-- Dumbbells -->
+  <g fill="#E2A63B">
+    <rect x="80" y="30" width="24" height="8" rx="3"/>
+    <circle cx="80" cy="34" r="8"/>
+    <circle cx="104" cy="34" r="8"/>
+    <rect x="112" y="30" width="24" height="8" rx="3"/>
+    <circle cx="112" cy="34" r="8"/>
+    <circle cx="136" cy="34" r="8"/>
+  </g>
+</svg>

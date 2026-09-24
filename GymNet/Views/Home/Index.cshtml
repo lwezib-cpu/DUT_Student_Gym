@@ -77,10 +77,9 @@
 <section id="hero" class="d-flex align-items-center text-white"
          style="min-height:100vh; background:linear-gradient(rgba(0,0,0,0.65),rgba(0,0,0,0.65)), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;">
     <div class="container text-center">
-        <h1 class="fw-bold hero-fade">Transform Your Body. Transform Your Life.</h1>
+        <h1 class="fw-bold hero-fade">Transform Your Life. Transform Your Body.</h1>
         <p class="lead col-lg-8 mx-auto mb-4 hero-fade delay-1">
-            Join DutGym and get access to top-tier equipment, structured membership
-            plans, and a community that keeps you accountable.
+            Become part of DutGym and unlock top-notch gear, hassle-free membership plans, and the encouragement you need to reach your goals.
         </p>
 
         <div class="hero-fade delay-2">
@@ -137,7 +136,7 @@
             <h6 class="text-danger fw-bold text-uppercase">Pricing</h6>
             <h2 class="fw-bold">Membership Plans</h2>
             <p class="text-muted col-lg-6 mx-auto">
-                Choose the plan that fits your lifestyle. All plans include full access to our facilities.
+                Choose the plan that fits your lifestyle. You can ask Admin for advice
             </p>
         </div>
         <div class="row g-4">
@@ -149,7 +148,7 @@
                         <h5 class="fw-bold">DUT Semester Plan</h5>
                         <h2 class="fw-bold my-3">R250<span class="fs-6 text-muted">/semester</span></h2>
                         <p class="text-muted mb-4">
-                            Full access to all gym facilities for one semester (6 months).
+                            Full access to all gym facilities for one semester (4 months).
                             Includes access to all equipment, locker rooms, and group classes.
                         </p>
                         <ul class="list-unstyled text-muted mb-4 text-start">
@@ -181,7 +180,7 @@
                         <h5 class="fw-bold">Monthly Plan</h5>
                         <h2 class="fw-bold my-3">R80<span class="fs-6 text-muted">/mo</span></h2>
                         <p class="text-muted mb-4">
-                            Month-to-month membership with full gym access.
+                            Month to month membership with full gym access.
                             Flexible option for those who don't want long-term commitment.
                         </p>
                         <ul class="list-unstyled text-muted mb-4 text-start">
@@ -215,7 +214,7 @@
                         <h2 class="fw-bold my-3">R650<span class="fs-6 text-muted">/year</span></h2>
                         <p class="text-muted mb-4">
                             Best value! Full year of unlimited gym access.
-                            Save 30% compared to monthly plan. Includes 2 free personal training sessions.
+                            Save you 30% compared to monthly plan. Includes 2 free personal training sessions.
                         </p>
                         <ul class="list-unstyled text-muted mb-4 text-start">
                             <li class="mb-2"><i class="bi bi-check-circle-fill text-danger me-2"></i>12 months access</li>
@@ -286,6 +285,42 @@
             </p>
             <a href="@Url.Action("Register", "Account")" class="btn btn-light btn-lg px-5 me-3">Join Now</a>
             <a href="@Url.Action("Plans", "Membership")" class="btn btn-outline-light btn-lg px-5">View Plans</a>
+        </div>
+    </section>
+}
+
+<!-- ============ MEET THE TEAM SECTION ============ -->
+@{
+    var staffList = (List<GymNet.ViewModels.TrainerListItemViewModel>)ViewBag.Staff;
+}
+@if (staffList != null && staffList.Any())
+{
+    <section id="team" class="py-5 py-lg-6">
+        <div class="container py-5">
+            <div class="text-center mb-5 reveal">
+                <h6 class="text-danger fw-bold text-uppercase">Meet The Team</h6>
+                <h2 class="fw-bold">Our Trainers</h2>
+                <p class="text-muted">Look for these faces on the gym floor.</p>
+            </div>
+            <div class="row g-4 justify-content-center">
+                @foreach (var trainer in staffList)
+                {
+                    <div class="col-md-4 col-lg-3 text-center reveal">
+                        @if (!string.IsNullOrEmpty(trainer.ProfilePhotoUrl))
+                        {
+                            <img src="@Url.Content(trainer.ProfilePhotoUrl)" alt="@trainer.FullName" class="rounded-circle mb-3 shadow-sm" style="width: 130px; height: 130px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="rounded-circle bg-secondary bg-opacity-10 mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 130px; height: 130px; font-size: 2.5rem;">
+                                <i class="bi bi-person-fill text-secondary"></i>
+                            </div>
+                        }
+                        <h5 class="fw-bold mb-1">@trainer.FullName</h5>
+                        <span class="badge bg-danger">@trainer.Specialty</span>
+                    </div>
+                }
+            </div>
         </div>
     </section>
 }

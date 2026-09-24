@@ -22,7 +22,7 @@
             var roleManager = new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(context));
             var userManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(context));
 
-            string[] roles = { "Admin", "Member" };
+            string[] roles = { "Admin", "Member", "Trainer" };
             foreach (var roleName in roles)
             {
                 if (!roleManager.RoleExists(roleName))
@@ -52,6 +52,33 @@
                 if (createResult.Succeeded)
                 {
                     userManager.AddToRole(admin.Id, "Admin");
+                }
+            }
+
+            // Seed one working trainer login. Trainers use a normal email + password
+            // (not the student email format) - add more trainer accounts the same way,
+            // or build an admin "Register Trainer" screen if you want this done from the UI.
+            const string trainerEmail = "trainer@gymnet.com";
+            if (userManager.FindByEmail(trainerEmail) == null)
+            {
+                var trainer = new ApplicationUser
+                {
+                    UserName = trainerEmail,
+                    Email = trainerEmail,
+                    EmailConfirmed = true,
+                    FirstName = "Alex",
+                    LastName = "Trainer",
+                    PhoneNumber = "0000000001",
+                    DateOfBirth = new DateTime(1990, 1, 1),
+                    Gender = "N/A",
+                    Address = "GymNet Head Office"
+                };
+
+                // Change this password after first login in a real deployment.
+                var trainerResult = userManager.Create(trainer, "Trainer@123");
+                if (trainerResult.Succeeded)
+                {
+                    userManager.AddToRole(trainer.Id, "Trainer");
                 }
             }
 
@@ -90,6 +117,22 @@
                         IsActive = true,
                         CreatedAt = DateTime.Now
                     }
+                });
+
+                context.SaveChanges();
+            }
+
+            // Seed default equipment
+            if (!context.Equipment.Any())
+            {
+                context.Equipment.AddRange(new[]
+                {
+                    new Equipment { Name = "Treadmill", Description = "Cardio treadmill", TotalQuantity = 4, ReservationFee = 10.00m, OveragePerHourFee = 15.00m, IsActive = true },
+                    new Equipment { Name = "Squat Rack", Description = "Barbell squat rack", TotalQuantity = 2, ReservationFee = 15.00m, OveragePerHourFee = 20.00m, IsActive = true },
+                    new Equipment { Name = "Bench Press Station", Description = "Flat bench with barbell rack", TotalQuantity = 2, ReservationFee = 15.00m, OveragePerHourFee = 20.00m, IsActive = true },
+                    new Equipment { Name = "Rowing Machine", Description = "Cardio rowing machine", TotalQuantity = 3, ReservationFee = 10.00m, OveragePerHourFee = 15.00m, IsActive = true },
+                    new Equipment { Name = "Dumbbell Set", Description = "Full dumbbell rack, 2kg-30kg", TotalQuantity = 5, ReservationFee = 5.00m, OveragePerHourFee = 10.00m, IsActive = true },
+                    new Equipment { Name = "Kettlebell Set", Description = "8kg-24kg kettlebells", TotalQuantity = 3, ReservationFee = 5.00m, OveragePerHourFee = 10.00m, IsActive = true }
                 });
 
                 context.SaveChanges();

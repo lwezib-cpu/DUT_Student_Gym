@@ -59,10 +59,12 @@ namespace GymNet.Controllers
                 return View(model);
             }
 
+            var studentEmail = StudentEmailAttribute.Normalize(model.Email);
+
             var user = new ApplicationUser
             {
-                UserName = model.Email,
-                Email = model.Email,
+                UserName = studentEmail,
+                Email = studentEmail,
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 PhoneNumber = model.PhoneNumber,
@@ -111,8 +113,11 @@ namespace GymNet.Controllers
                 return View(model);
             }
 
+            // Students can type just their student number or the full student email.
+            var loginEmail = StudentEmailAttribute.Normalize(model.Email);
+
             // Find the user by email
-            var user = await UserManager.FindByEmailAsync(model.Email);
+            var user = await UserManager.FindByEmailAsync(loginEmail);
             if (user == null)
             {
                 ModelState.AddModelError("", "Invalid email or password.");
@@ -174,6 +179,11 @@ namespace GymNet.Controllers
             if (await UserManager.IsInRoleAsync(user.Id, "Admin"))
             {
                 return RedirectToAction("Dashboard", "Admin");
+            }
+
+            if (await UserManager.IsInRoleAsync(user.Id, "Trainer"))
+            {
+                return RedirectToAction("Dashboard", "Trainer");
             }
 
             return RedirectToAction("Dashboard", "Member");

@@ -1,0 +1,150 @@
+﻿﻿@using GymNet.Helpers
+@{
+    ViewBag.Title = "Build Your Own Meal";
+    ViewBag.Active = "Fitness";
+    Layout = "~/Views/Shared/_MemberLayout.cshtml";
+    var ingredients = (List<Ingredient>)ViewBag.Ingredients;
+    var categories = ingredients.Select(i => i.Category).Distinct().ToList();
+    string goalType = ViewBag.GoalType;
+    string goalLabel = ViewBag.GoalLabel;
+}
+
+<h2 class="fw-bold mb-1">Build Your Own Meal</h2>
+<p class="text-muted mb-4">
+    Tick the ingredients you're planning to eat and we'll estimate the total calories.
+    @if (goalLabel != null)
+    {
+        <text>Your current goal is <strong>@goalLabel</strong>, so we'll also tell you how the meal lines up with that.</text>
+    }
+    else
+    {
+        <text>Set a fitness goal to get feedback on how a meal lines up with it.</text>
+    }
+</p>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        @foreach (var cat in categories)
+        {
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h6 class="fw-bold mb-0">@cat</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        @foreach (var ing in ingredients.Where(i => i.Category == cat))
+                        {
+                            var id = "ing_" + ingredients.IndexOf(ing);
+                            <div class="col-md-6">
+                                <div class="form-check d-flex align-items-start gap-2 p-2 rounded border mb-0 gn-ing-row">
+                                    <input class="form-check-input mt-1 gn-ing-check" type="checkbox" id="@id"
+                                           data-calories="@ing.Calories" data-name="@ing.Name" data-emoji="@ing.Emoji" />
+                                    <label class="form-check-label" for="@id">
+                                        <span class="me-1">@ing.Emoji</span>
+                                        <span class="fw-semibold">@ing.Name</span>
+                                        <br />
+                                        <span class="text-muted small">@ing.Calories kcal &middot; @ing.Benefit</span>
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4" style="position: sticky; top: 76px;">
+            <div class="card-header bg-white">
+                <h6 class="fw-bold mb-0"><i class="bi bi-clipboard2-check me-2 text-danger"></i>Your Meal</h6>
+            </div>
+            <div class="card-body">
+                <div id="gnMealEmpty" class="text-muted small">No ingredients selected yet.</div>
+                <ul id="gnMealList" class="list-unstyled mb-3"></ul>
+                <hr />
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold">Estimated total</span>
+                    <span class="fw-bold fs-5" id="gnMealTotal">0 kcal</span>
+                </div>
+                <div id="gnMealFeedback" class="alert alert-secondary small mb-0" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="fw-bold mb-0"><i class="bi bi-exclamation-triangle me-2 text-danger"></i>Snacks &amp; Sweets - Ground Rules</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small mb-0 ps-3">
+                    <li class="mb-2">Sweets and treats can fit into any goal in moderation - the aim is consistency, not eliminating them completely.</li>
+                    <li class="mb-2">Prefer whole-food snacks (fruit, nuts, yoghurt) most of the time, and treat sugary snacks as an occasional extra rather than a daily habit.</li>
+                    <li class="mb-2">Check portion sizes on packaged snacks - it's easy to eat more than one serving without noticing.</li>
+                    <li class="mb-2">Pair a sweet treat with some protein or fibre (e.g. fruit with yoghurt) to help you feel more satisfied.</li>
+                    <li class="mb-2">Sugary drinks (soda, energy drinks) add calories quickly with little else nutritionally - water or unsweetened drinks are the better everyday choice.</li>
+                    <li class="mb-0">If you notice sweets are replacing regular meals rather than adding to them, that's worth mentioning to a doctor or dietitian.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        (function () {
+            var goalType = @Html.Raw(Json.Encode(goalType));
+
+            function refresh() {
+                var checks = document.querySelectorAll('.gn-ing-check:checked');
+                var list = document.getElementById('gnMealList');
+                var empty = document.getElementById('gnMealEmpty');
+                var totalEl = document.getElementById('gnMealTotal');
+                var feedback = document.getElementById('gnMealFeedback');
+
+                list.innerHTML = '';
+                var total = 0;
+
+                checks.forEach(function (c) {
+                    total += parseInt(c.getAttribute('data-calories'), 10);
+                    var li = document.createElement('li');
+                    li.className = 'small mb-1';
+                    li.textContent = c.getAttribute('data-emoji') + ' ' + c.getAttribute('data-name') + ' - ' + c.getAttribute('data-calories') + ' kcal';
+                    list.appendChild(li);
+                });
+
+                empty.style.display = checks.length === 0 ? 'block' : 'none';
+                totalEl.textContent = total + ' kcal';
+
+                if (checks.length === 0 || !goalType) {
+                    feedback.style.display = 'none';
+                    return;
+                }
+
+                // Rough, non-prescriptive qualitative feedback - a single meal estimate
+                // compared loosely to what a typical meal looks like for the goal.
+                // Not a calorie target or daily budget.
+                var note = '';
+                if (goalType === 'LoseWeight') {
+                    note = total <= 550
+                        ? 'This is a lighter meal, which fits well with a weight-loss goal - especially if it includes protein and vegetables.'
+                        : 'This is a fairly calorie-dense meal for a weight-loss goal - still fine occasionally, just worth balancing with lighter meals elsewhere in the day.';
+                } else if (goalType === 'GainWeight') {
+                    note = total >= 650
+                        ? 'Good - this is a calorie-dense meal, which supports a weight-gain goal.'
+                        : 'This meal is on the lighter side for a weight-gain goal - consider adding a calorie-dense extra like nuts, avocado or a smoothie.';
+                } else {
+                    note = (total >= 400 && total <= 750)
+                        ? 'This looks like a balanced, moderate meal, which fits well with maintaining your current weight.'
+                        : 'This meal is on the lighter or heavier side of a typical balanced meal - that\'s fine occasionally, just something to notice.';
+                }
+                feedback.textContent = note;
+                feedback.style.display = 'block';
+            }
+
+            document.querySelectorAll('.gn-ing-check').forEach(function (c) {
+                c.addEventListener('change', refresh);
+            });
+            refresh();
+        })();
+    </script>
+}

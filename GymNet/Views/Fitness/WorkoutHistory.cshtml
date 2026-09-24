@@ -1,0 +1,53 @@
+﻿﻿@model List<GymNet.ViewModels.WorkoutLogItemViewModel>
+@{
+    ViewBag.Title = "Workout History";
+    ViewBag.Active = "Fitness";
+    Layout = "~/Views/Shared/_MemberLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-1">
+    <h2 class="fw-bold mb-0">Workout History</h2>
+    <a href="@Url.Action("LogWorkout", "Fitness")" class="btn btn-danger btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Log Workout
+    </a>
+</div>
+<p class="text-muted mb-4">Everything you've logged, most recent first.</p>
+
+@if (!Model.Any())
+{
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <p class="text-muted mb-0">No workouts logged yet.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Exercise</th>
+                        <th>Sets</th>
+                        <th>Reps</th>
+                        <th>Weight</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var w in Model)
+                    {
+                        <tr>
+                            <td>@w.LoggedAt.ToString("dd MMM yyyy HH:mm")</td>
+                            <td><strong>@w.ExerciseName</strong></td>
+                            <td>@w.Sets</td>
+                            <td>@w.Reps</td>
+                            <td>@(w.WeightKg.HasValue ? w.WeightKg.Value + " kg" : "Bodyweight")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

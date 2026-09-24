@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace GymNet.ViewModels
 {
@@ -11,6 +13,9 @@ namespace GymNet.ViewModels
         public decimal Price { get; set; }
         public int DurationInMonths { get; set; }
         public bool IsActive { get; set; }
+
+        // Plans of 1 month or less (Monthly) are never locked to the semester calendar.
+        public bool IsLocked { get; set; }
     }
 
     public class SelectMembershipViewModel
@@ -21,7 +26,11 @@ namespace GymNet.ViewModels
         public int DurationInMonths { get; set; }
     }
 
-    public class PaymentViewModel
+    // Card fields are only required when PaymentMethod is Credit/Debit Card; bank fields
+    // are only required for EFT. Plain [Required] on all of them was the bug that made
+    // the demo payment silently fail - e.g. picking Credit Card and leaving Bank Name
+    // blank (a field that isn't even shown for that method) failed server validation.
+    public class PaymentViewModel : IValidatableObject
     {
         [Required]
         public int MembershipPlanId { get; set; }
@@ -30,42 +39,58 @@ namespace GymNet.ViewModels
         [Display(Name = "Payment Method")]
         public string PaymentMethod { get; set; }
 
-        // Credit/Debit Card Fields
         [Display(Name = "Card Holder Name")]
-        [StringLength(100, ErrorMessage = "Card holder name cannot exceed 100 characters")]
+        [StringLength(100)]
         public string CardHolderName { get; set; }
 
         [Display(Name = "Card Number")]
-        [StringLength(19, MinimumLength = 16, ErrorMessage = "Card number must be 16 digits")]
+        [StringLength(19)]
         public string CardNumber { get; set; }
 
         [Display(Name = "Expiry Date (MM/YY)")]
-        [StringLength(5, ErrorMessage = "Expiry date must be in MM/YY format")]
+        [StringLength(5)]
         public string ExpiryDate { get; set; }
 
         [Display(Name = "CVV")]
-        [StringLength(4, MinimumLength = 3, ErrorMessage = "CVV must be 3 or 4 digits")]
+        [StringLength(4)]
         public string CVV { get; set; }
 
-        // EFT Fields
         [Display(Name = "Bank Name")]
         [StringLength(100)]
         public string BankName { get; set; }
 
-        [Display(Name = "Account Holder")]
-        [StringLength(100)]
-        public string AccountHolderName { get; set; }
-
         [Display(Name = "Account Number")]
-        [StringLength(20, MinimumLength = 8, ErrorMessage = "Account number must be between 8 and 20 digits")]
+        [StringLength(20)]
         public string AccountNumber { get; set; }
 
-        [Display(Name = "Branch Code")]
-        [StringLength(6, MinimumLength = 6, ErrorMessage = "Branch code must be 6 digits")]
-        public string BranchCode { get; set; }
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            var isCard = PaymentMethod == "Credit Card" || PaymentMethod == "Debit Card";
+            var isEft = PaymentMethod == "EFT";
 
-        [Display(Name = "Account Type")]
-        public string AccountType { get; set; } // Cheque, Savings, Transmission
+            if (isCard)
+            {
+                if (string.IsNullOrWhiteSpace(CardHolderName))
+                    yield return new ValidationResult("Card holder name is required", new[] { nameof(CardHolderName) });
+
+                if (string.IsNullOrWhiteSpace(CardNumber) || !Regex.IsMatch(CardNumber, @"^\d{16}$"))
+                    yield return new ValidationResult("Please enter a valid 16-digit card number", new[] { nameof(CardNumber) });
+
+                if (string.IsNullOrWhiteSpace(ExpiryDate) || !Regex.IsMatch(ExpiryDate, @"^(0[1-9]|1[0-2])\/([0-9]{2})$"))
+                    yield return new ValidationResult("Please use MM/YY format", new[] { nameof(ExpiryDate) });
+
+                if (string.IsNullOrWhiteSpace(CVV) || !Regex.IsMatch(CVV, @"^\d{3,4}$"))
+                    yield return new ValidationResult("Please enter a valid CVV", new[] { nameof(CVV) });
+            }
+            else if (isEft)
+            {
+                if (string.IsNullOrWhiteSpace(BankName))
+                    yield return new ValidationResult("Bank name is required", new[] { nameof(BankName) });
+
+                if (string.IsNullOrWhiteSpace(AccountNumber) || !Regex.IsMatch(AccountNumber, @"^\d{8,20}$"))
+                    yield return new ValidationResult("Please enter a valid account number", new[] { nameof(AccountNumber) });
+            }
+        }
     }
 
     public class MemberMembershipViewModel
@@ -103,48 +128,15 @@ namespace GymNet.ViewModels
         public string MembershipPlanName { get; set; }
         public DateTime MembershipStartDate { get; set; }
         public DateTime MembershipEndDate { get; set; }
-
-        // Additional payment details for display
-        public string AccountNumber { get; set; }
-        public string AccountType { get; set; }
-        public string BranchCode { get; set; }
     }
 
-    public class ReceiptViewModel
+    public class MembershipCardViewModel
     {
-        public int PaymentId { get; set; }
-        public string TransactionReference { get; set; }
-        public DateTime PaymentDate { get; set; }
-        public string MembershipPlanName { get; set; }
-        public decimal Amount { get; set; }
-        public string PaymentMethod { get; set; }
-        public string Status { get; set; }
-        public string BankName { get; set; }
-        public string CardHolderName { get; set; }
-        public string MaskedCardNumber { get; set; }
-        public DateTime MembershipStartDate { get; set; }
-        public DateTime MembershipEndDate { get; set; }
-
-        // EFT specific fields
-        public string AccountNumber { get; set; }
-        public string AccountType { get; set; }
-        public string BranchCode { get; set; }
-
-        // Member details
-        public string MemberName { get; set; }
-        public string MemberEmail { get; set; }
-
-        // Gym details (you can move these to a settings/config file)
-        public string GymName { get; set; } = "GymNet Fitness Center";
-        public string GymAddress { get; set; } = "123 Fitness Street, Johannesburg, South Africa";
-        public string GymPhone { get; set; } = "+27 11 234 5678";
-        public string GymEmail { get; set; } = "info@gymnet.co.za";
-
-        // Computed properties for display
-        public string FormattedAmount => $"R {Amount:F2}";
-        public string SubscriptionPeriod => $"{MembershipStartDate:dd MMM yyyy} - {MembershipEndDate:dd MMM yyyy}";
-        public int SubscriptionDurationDays => (MembershipEndDate - MembershipStartDate).Days;
-        public bool IsActive => MembershipEndDate > DateTime.Now;
-        public int DaysRemaining => IsActive ? (MembershipEndDate - DateTime.Now).Days : 0;
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string PlanName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string MemberId { get; set; }
     }
 }
