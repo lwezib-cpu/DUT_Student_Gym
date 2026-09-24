@@ -19,7 +19,7 @@
 
                             <div class="mb-3">
                                 @Html.LabelFor(m => m.Email, new { @class = "form-label" })
-                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "you@example.com", type = "email" })
+                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "21234567 or 21234567@dut4life.ac.za", type = "text", autocomplete = "username" })
                                 @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
                             </div>
                             <div class="mb-3">

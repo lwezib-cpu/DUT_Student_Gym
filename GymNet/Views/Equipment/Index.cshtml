@@ -1,0 +1,89 @@
+﻿﻿@model List<GymNet.ViewModels.EquipmentListItemViewModel>
+@{
+    ViewBag.Title = "Equipment Booking";
+    ViewBag.Active = "Equipment";
+    Layout = "~/Views/Shared/_MemberLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-1">
+    <h2 class="fw-bold mb-0">Equipment Booking</h2>
+    <a href="@Url.Action("MyBookings", "Equipment")" class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-list-check me-1"></i>My Bookings
+    </a>
+</div>
+<p class="text-muted mb-4">Reserve equipment ahead of time. A reservation fee applies, and keeping it past your reserved time adds an overuse fee.</p>
+
+<div class="row g-4">
+    @foreach (var e in Model)
+    {
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="text-center mb-2">
+                        @if (!string.IsNullOrEmpty(e.ImageUrl))
+                        {
+                            <img src="@Url.Content(e.ImageUrl)" alt="@e.Name" class="img-fluid rounded" style="max-height: 140px; object-fit: contain;" />
+                        }
+                        else if (!string.IsNullOrEmpty(e.LottieUrl))
+                        {
+                            <lottie-player src="@e.LottieUrl" background="transparent" speed="1"
+                                           style="width: 90px; height: 90px; margin: 0 auto;" loop autoplay>
+                            </lottie-player>
+                        }
+                        else
+                        {
+                            <i class="bi @e.IconClass @e.AnimationClass text-danger" style="font-size: 2.5rem;"></i>
+                        }
+                    </div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="fw-bold mb-0">@e.Name</h5>
+                        @if (e.IsUnderMaintenance)
+                        {
+                            <span class="badge bg-warning text-dark">Under Maintenance</span>
+                        }
+                        else
+                        {
+                            <span class="badge @(e.AvailableNow > 0 ? "bg-success" : "bg-danger")">
+                                @e.AvailableNow / @e.TotalQuantity available
+                            </span>
+                        }
+                    </div>
+                    <p class="text-muted small mb-2">@e.Description</p>
+                    <p class="small mb-3">
+                        Reservation fee: <strong>R@(e.ReservationFee.ToString("F2"))</strong> &middot;
+                        Overuse: <strong>R@(e.OveragePerHourFee.ToString("F2"))/hour</strong> past your reserved time
+                    </p>
+
+                    @if (e.IsUnderMaintenance)
+                    {
+                        <button type="button" class="btn btn-secondary w-100" disabled>
+                            Under Maintenance@(string.IsNullOrEmpty(e.MaintenanceNote) ? "" : ": " + e.MaintenanceNote)
+                        </button>
+                    }
+                    else if (e.AvailableNow > 0)
+                    {
+                        using (Html.BeginForm("Reserve", "Equipment", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="EquipmentId" value="@e.Id" />
+                            <div class="input-group">
+                                <select name="ExpectedDurationMinutes" class="form-select">
+                                    <option value="15">15 minutes</option>
+                                    <option value="30" selected>30 minutes</option>
+                                    <option value="60">1 hour</option>
+                                    <option value="90">1.5 hours</option>
+                                    <option value="120">2 hours</option>
+                                </select>
+                                <button type="submit" class="btn btn-danger">Reserve</button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-secondary w-100" disabled>All Reserved</button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

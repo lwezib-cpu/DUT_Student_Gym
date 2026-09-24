@@ -1,0 +1,16 @@
+﻿<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ground line -->
+  <rect x="20" y="118" width="160" height="4" rx="2" fill="#13241F" opacity="0.3"/>
+  <!-- Body: head to feet, angled plank -->
+  <circle cx="150" cy="70" r="12" fill="#0E8F6E"/>
+  <rect x="55" y="93" width="98" height="13" rx="6" fill="#0E8F6E" transform="rotate(-14 104 100)"/>
+  <!-- Front arm (bent, supporting) -->
+  <rect x="118" y="75" width="9" height="34" rx="4" fill="#0E8F6E" transform="rotate(18 122 92)"/>
+  <!-- Back arm -->
+  <rect x="50" y="95" width="9" height="26" rx="4" fill="#0E8F6E" transform="rotate(-6 54 108)"/>
+  <!-- Legs to toes -->
+  <rect x="35" y="108" width="10" height="14" rx="4" fill="#0E8F6E"/>
+  <!-- Motion arrow -->
+  <path d="M150 40 Q160 55 150 68" stroke="#E2A63B" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M144 62 L150 70 L157 61" stroke="#E2A63B" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

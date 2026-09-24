@@ -1,0 +1,82 @@
+﻿﻿@model GymNet.ViewModels.ExerciseRecommendationViewModel
+@{
+    ViewBag.Title = "Exercise Recommendations";
+    ViewBag.Active = "Exercises";
+    Layout = "~/Views/Shared/_MemberLayout.cshtml";
+}
+
+<h2 class="fw-bold mb-1">Exercise Recommendations</h2>
+<p class="text-muted mb-4">Pick a body part and we'll suggest exercises to train it.</p>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex flex-wrap gap-2">
+            @foreach (var part in Model.BodyParts)
+            {
+                var isSelected = part == Model.SelectedBodyPart;
+                <a href="@Url.Action("Index", "Exercise", new { bodyPart = part })"
+                   class="btn @(isSelected ? "btn-danger" : "btn-outline-danger")">
+                    @part
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+@if (string.IsNullOrEmpty(Model.SelectedBodyPart))
+{
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-person-arms-up fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">Choose a body part above to see recommended exercises.</h5>
+        </div>
+    </div>
+}
+else if (!Model.Exercises.Any())
+{
+    <div class="alert alert-warning">No exercises found for @Model.SelectedBodyPart.</div>
+}
+else
+{
+    <h5 class="fw-bold mb-3">@Model.SelectedBodyPart Exercises</h5>
+    <div class="row g-4">
+        @foreach (var ex in Model.Exercises)
+        {
+            var diffClass = ex.Difficulty == "Beginner" ? "bg-success" :
+                             ex.Difficulty == "Intermediate" ? "bg-warning text-dark" : "bg-danger";
+            var iconClass = GymNet.Helpers.ExerciseCatalog.IconFor(ex.Equipment);
+            var animClass = GymNet.Helpers.ExerciseCatalog.AnimationFor(ex.Name);
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-2">
+                            @if (!string.IsNullOrEmpty(ex.ImageUrl))
+                            {
+                                <img src="@Url.Content(ex.ImageUrl)" alt="@ex.Name" class="img-fluid rounded" style="max-height: 160px; object-fit: contain;" />
+                            }
+                            else if (!string.IsNullOrEmpty(ex.LottieUrl))
+                            {
+                                <lottie-player src="@ex.LottieUrl" background="transparent" speed="1"
+                                               style="width: 90px; height: 90px; margin: 0 auto;" loop autoplay>
+                                </lottie-player>
+                            }
+                            else
+                            {
+                                <i class="bi @iconClass @animClass text-danger" style="font-size: 2.5rem;"></i>
+                            }
+                        </div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="fw-bold mb-0">@ex.Name</h5>
+                            <span class="badge @diffClass">@ex.Difficulty</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-secondary me-1"><i class="bi bi-gear me-1"></i>@ex.Equipment</span>
+                            <span class="badge bg-dark"><i class="bi bi-repeat me-1"></i>@ex.SetsReps</span>
+                        </div>
+                        <p class="text-muted small mb-0">@ex.Instructions</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

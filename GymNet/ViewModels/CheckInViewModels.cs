@@ -13,6 +13,15 @@ namespace GymNet.ViewModels
         public DateTime? MembershipEndDate { get; set; }
         public bool CanCheckIn { get; set; }
         public string Message { get; set; }
+
+        // Current open visit (checked in, not yet checked out)
+        public bool IsCheckedInNow { get; set; }
+        public int? OpenCheckInId { get; set; }
+        public DateTime? OpenCheckInTime { get; set; }
+
+        // Time-tracking summary
+        public int TotalMinutesThisMonth { get; set; }
+        public int TotalMinutesAllTime { get; set; }
     }
 
     public class CheckInResultViewModel
@@ -25,11 +34,14 @@ namespace GymNet.ViewModels
     public class CheckInHistoryViewModel
     {
         public int Id { get; set; }
+        public string UserId { get; set; }
         public string FullName { get; set; }
         public string Email { get; set; }
         public DateTime CheckInTime { get; set; }
         public string CheckInMethod { get; set; }
         public string QRCode { get; set; }
+        public DateTime? CheckOutTime { get; set; }
+        public int? DurationMinutes { get; set; }
     }
 
     public class AdminCheckInViewModel
@@ -39,6 +51,7 @@ namespace GymNet.ViewModels
         public int TotalCheckInsToday { get; set; }
         public int TotalCheckInsAllTime { get; set; }
         public int UniqueMembersToday { get; set; }
+        public int MembersCurrentlyInGym { get; set; }
     }
 
     public class GenerateQRCodeViewModel

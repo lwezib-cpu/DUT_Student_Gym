@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using GymNet.Data;
+using GymNet.Helpers;
 using GymNet.Models;
 using GymNet.ViewModels;
 
@@ -22,12 +23,15 @@ namespace GymNet.Controllers
             get { return HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>(); }
         }
 
-        #region Membership Plans
-
         // GET: /Membership/Plans
         [AllowAnonymous]
         public ActionResult Plans()
         {
+            // Packages are only clickable during the sign-up months (Feb-Mar, Jul-Aug)
+            ViewBag.SignupOpen = SemesterCalendar.IsSignupOpen(DateTime.Now);
+            ViewBag.LockedMessage = SemesterCalendar.LockedMessage(DateTime.Now);
+            ViewBag.SignupWindows = SemesterCalendar.SignupWindowsText();
+
             var plans = db.MembershipPlans
                 .Where(p => p.IsActive)
                 .OrderBy(p => p.Price)
@@ -42,6 +46,11 @@ namespace GymNet.Controllers
                 })
                 .ToList();
 
+            foreach (var plan in plans)
+            {
+                plan.IsLocked = SemesterCalendar.IsPlanLocked(plan.DurationInMonths, DateTime.Now);
+            }
+
             return View(plans);
         }
 
@@ -52,6 +61,12 @@ namespace GymNet.Controllers
             if (plan == null || !plan.IsActive)
             {
                 TempData["ErrorMessage"] = "Selected membership plan is not available.";
+                return RedirectToAction("Plans");
+            }
+
+            if (SemesterCalendar.IsPlanLocked(plan.DurationInMonths, DateTime.Now))
+            {
+                TempData["ErrorMessage"] = SemesterCalendar.LockedMessage(DateTime.Now);
                 return RedirectToAction("Plans");
             }
 
@@ -77,10 +92,6 @@ namespace GymNet.Controllers
             return View(model);
         }
 
-        #endregion
-
-        #region Payment Processing
-
         // GET: /Membership/Payment/{planId}
         public async Task<ActionResult> Payment(int planId)
         {
@@ -88,6 +99,12 @@ namespace GymNet.Controllers
             if (plan == null || !plan.IsActive)
             {
                 TempData["ErrorMessage"] = "Invalid membership plan.";
+                return RedirectToAction("Plans");
+            }
+
+            if (SemesterCalendar.IsPlanLocked(plan.DurationInMonths, DateTime.Now))
+            {
+                TempData["ErrorMessage"] = SemesterCalendar.LockedMessage(DateTime.Now);
                 return RedirectToAction("Plans");
             }
 
@@ -108,12 +125,16 @@ namespace GymNet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Payment(PaymentViewModel model)
         {
-            // Validate based on payment method
-            ValidatePaymentMethod(model);
+            var planForLockCheck = await db.MembershipPlans.FindAsync(model.MembershipPlanId);
+            if (planForLockCheck != null && SemesterCalendar.IsPlanLocked(planForLockCheck.DurationInMonths, DateTime.Now))
+            {
+                TempData["ErrorMessage"] = SemesterCalendar.LockedMessage(DateTime.Now);
+                return RedirectToAction("Plans");
+            }
 
             if (!ModelState.IsValid)
             {
-                var plan = await db.MembershipPlans.FindAsync(model.MembershipPlanId);
+                var plan = planForLockCheck;
                 ViewBag.PlanName = plan?.Name;
                 ViewBag.Price = plan?.Price;
                 ViewBag.DurationInMonths = plan?.DurationInMonths;
@@ -127,7 +148,8 @@ namespace GymNet.Controllers
             }
 
             // Generate a demo transaction reference
-            var transactionRef = GenerateTransactionReference();
+            var transactionRef = "GYM-" + DateTime.Now.ToString("yyyyMMdd") + "-" +
+                                Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
 
             // Create the membership record
             var membership = new MemberMembership
@@ -135,14 +157,14 @@ namespace GymNet.Controllers
                 UserId = User.Identity.GetUserId(),
                 MembershipPlanId = model.MembershipPlanId,
                 StartDate = DateTime.Now,
-                EndDate = DateTime.Now.AddMonths(planInfo.DurationInMonths),
+                EndDate = SemesterCalendar.CalculateEndDateForPlan(DateTime.Now, planInfo.DurationInMonths),
                 Status = "Active",
                 CreatedAt = DateTime.Now
             };
 
             db.MemberMemberships.Add(membership);
 
-            // Create payment record with method-specific details
+            // Create payment record
             var payment = new Payment
             {
                 MemberMembership = membership,
@@ -150,25 +172,13 @@ namespace GymNet.Controllers
                 PaymentMethod = model.PaymentMethod,
                 Status = "Completed",
                 PaymentDate = DateTime.Now,
+                CardHolderName = model.CardHolderName,
+                CardNumber = "****" + model.CardNumber.Substring(Math.Max(0, model.CardNumber.Length - 4)),
+                ExpiryDate = model.ExpiryDate,
+                BankName = model.BankName,
+                AccountNumber = model.AccountNumber,
                 TransactionReference = transactionRef
             };
-
-            // Set method-specific fields
-            if (model.PaymentMethod == "Credit Card" || model.PaymentMethod == "Debit Card")
-            {
-                payment.CardHolderName = model.CardHolderName;
-                payment.CardNumber = MaskCardNumber(model.CardNumber.Replace(" ", ""));
-                payment.ExpiryDate = model.ExpiryDate;
-                payment.BankName = GetCardBankName(model.CardNumber);
-            }
-            else if (model.PaymentMethod == "EFT")
-            {
-                payment.BankName = model.BankName;
-                payment.AccountNumber = MaskAccountNumber(model.AccountNumber);
-                payment.CardHolderName = model.AccountHolderName;
-                payment.AccountType = model.AccountType;
-                payment.BranchCode = model.BranchCode;
-            }
 
             db.Payments.Add(payment);
             await db.SaveChangesAsync();
@@ -180,6 +190,7 @@ namespace GymNet.Controllers
         // GET: /Membership/PaymentConfirmation/{membershipId}
         public async Task<ActionResult> PaymentConfirmation(int membershipId)
         {
+            // Extract userId into a local string variable first
             var userId = User.Identity.GetUserId();
 
             var membership = await db.MemberMemberships
@@ -194,10 +205,6 @@ namespace GymNet.Controllers
 
             return View(membership);
         }
-
-        #endregion
-
-        #region Membership Management
 
         // GET: /Membership/MyMembership
         public async Task<ActionResult> MyMembership()
@@ -220,21 +227,47 @@ namespace GymNet.Controllers
             {
                 Id = membership.Id,
                 PlanName = membership.MembershipPlan.Name,
-                PlanDescription = membership.MembershipPlan.Description,
                 Price = membership.MembershipPlan.Price,
-                DurationInMonths = membership.MembershipPlan.DurationInMonths,
                 StartDate = membership.StartDate,
                 EndDate = membership.EndDate,
                 Status = membership.Status,
-                DaysRemaining = (membership.EndDate - DateTime.Now).Days
+                DaysRemaining = SemesterCalendar.DaysRemaining(membership.EndDate)
             };
 
             return View(model);
         }
 
-        #endregion
+        // GET: /Membership/MembershipCard - a printable card (use the browser's
+        // Print > Save as PDF, avoiding any extra PDF library dependency)
+        public async Task<ActionResult> MembershipCard()
+        {
+            var userId = User.Identity.GetUserId();
+            var user = await UserManager.FindByIdAsync(userId);
 
-        #region Payment History & Receipts
+            var membership = await db.MemberMemberships
+                .Include(m => m.MembershipPlan)
+                .Where(m => m.UserId == userId && m.Status == "Active")
+                .OrderByDescending(m => m.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (membership == null)
+            {
+                TempData["ErrorMessage"] = "You need an active membership to view your card.";
+                return RedirectToAction("MyMembership");
+            }
+
+            var model = new MembershipCardViewModel
+            {
+                FullName = user.FirstName + " " + user.LastName,
+                Email = user.Email,
+                PlanName = membership.MembershipPlan.Name,
+                StartDate = membership.StartDate,
+                EndDate = membership.EndDate,
+                MemberId = user.Id.Substring(0, 8).ToUpper()
+            };
+
+            return View(model);
+        }
 
         // GET: /Membership/PaymentHistory
         public async Task<ActionResult> PaymentHistory()
@@ -263,289 +296,6 @@ namespace GymNet.Controllers
 
             return View(payments);
         }
-
-        // GET: /Membership/Receipt/{paymentId}
-        public async Task<ActionResult> Receipt(int paymentId)
-        {
-            var receipt = await GetReceiptViewModel(paymentId);
-
-            if (receipt == null)
-            {
-                TempData["ErrorMessage"] = "Receipt not found.";
-                return RedirectToAction("PaymentHistory");
-            }
-
-            return View(receipt);
-        }
-
-        // GET: /Membership/PrintReceipt/{paymentId}
-        public async Task<ActionResult> PrintReceipt(int paymentId)
-        {
-            var receipt = await GetReceiptViewModel(paymentId);
-
-            if (receipt == null)
-            {
-                return HttpNotFound();
-            }
-
-            // Return a view optimized for printing
-            return View("Receipt", receipt);
-        }
-
-        #endregion
-
-        #region Helper Methods
-
-        // Validate payment method specific fields
-        private void ValidatePaymentMethod(PaymentViewModel model)
-        {
-            // First, remove any existing validation errors for fields we'll validate manually
-            foreach (var key in ModelState.Keys.ToList())
-            {
-                if (key != "MembershipPlanId" && key != "PaymentMethod")
-                {
-                    ModelState.Remove(key);
-                }
-            }
-
-            if (model.PaymentMethod == "Credit Card" || model.PaymentMethod == "Debit Card")
-            {
-                // Validate card fields
-                if (string.IsNullOrWhiteSpace(model.CardHolderName))
-                {
-                    ModelState.AddModelError("CardHolderName", "Card holder name is required");
-                }
-
-                if (string.IsNullOrWhiteSpace(model.CardNumber))
-                {
-                    ModelState.AddModelError("CardNumber", "Card number is required");
-                }
-                else
-                {
-                    var cleanCardNumber = model.CardNumber.Replace(" ", "");
-                    if (!IsValidCardNumber(cleanCardNumber))
-                    {
-                        ModelState.AddModelError("CardNumber", "Please enter a valid 16-digit card number");
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(model.ExpiryDate))
-                {
-                    ModelState.AddModelError("ExpiryDate", "Expiry date is required");
-                }
-                else if (!IsValidExpiryDate(model.ExpiryDate))
-                {
-                    ModelState.AddModelError("ExpiryDate", "Card has expired or invalid date");
-                }
-
-                if (string.IsNullOrWhiteSpace(model.CVV))
-                {
-                    ModelState.AddModelError("CVV", "CVV is required");
-                }
-                else if (model.CVV.Length < 3 || model.CVV.Length > 4)
-                {
-                    ModelState.AddModelError("CVV", "CVV must be 3 or 4 digits");
-                }
-            }
-            else if (model.PaymentMethod == "EFT")
-            {
-                // Validate EFT fields
-                if (string.IsNullOrWhiteSpace(model.BankName))
-                {
-                    ModelState.AddModelError("BankName", "Bank name is required");
-                }
-
-                if (string.IsNullOrWhiteSpace(model.AccountHolderName))
-                {
-                    ModelState.AddModelError("AccountHolderName", "Account holder name is required");
-                }
-
-                if (string.IsNullOrWhiteSpace(model.AccountNumber))
-                {
-                    ModelState.AddModelError("AccountNumber", "Account number is required");
-                }
-                else if (model.AccountNumber.Length < 8 || model.AccountNumber.Length > 20)
-                {
-                    ModelState.AddModelError("AccountNumber", "Account number must be between 8 and 20 digits");
-                }
-
-                if (string.IsNullOrWhiteSpace(model.BranchCode))
-                {
-                    ModelState.AddModelError("BranchCode", "Branch code is required");
-                }
-                else if (model.BranchCode.Length != 6)
-                {
-                    ModelState.AddModelError("BranchCode", "Branch code must be 6 digits");
-                }
-
-                if (string.IsNullOrWhiteSpace(model.AccountType))
-                {
-                    ModelState.AddModelError("AccountType", "Account type is required");
-                }
-            }
-            else
-            {
-                ModelState.AddModelError("PaymentMethod", "Please select a valid payment method");
-            }
-        }
-
-        // Private helper to get receipt view model
-        private async Task<ReceiptViewModel> GetReceiptViewModel(int paymentId)
-        {
-            try
-            {
-                var userId = User.Identity.GetUserId();
-
-                var payment = await db.Payments
-                    .Include(p => p.MemberMembership)
-                    .Include(p => p.MemberMembership.MembershipPlan)
-                    .Include(p => p.MemberMembership.User)
-                    .FirstOrDefaultAsync(p => p.Id == paymentId && p.MemberMembership.UserId == userId);
-
-                if (payment == null)
-                {
-                    return null;
-                }
-
-                var member = payment.MemberMembership.User;
-
-                return new ReceiptViewModel
-                {
-                    PaymentId = payment.Id,
-                    TransactionReference = payment.TransactionReference,
-                    PaymentDate = payment.PaymentDate,
-                    MembershipPlanName = payment.MemberMembership.MembershipPlan.Name,
-                    Amount = payment.Amount,
-                    PaymentMethod = payment.PaymentMethod,
-                    Status = payment.Status,
-                    BankName = payment.BankName,
-                    CardHolderName = payment.CardHolderName,
-                    MaskedCardNumber = payment.CardNumber,
-                    AccountNumber = payment.AccountNumber,
-                    AccountType = payment.AccountType,
-                    BranchCode = payment.BranchCode,
-                    MembershipStartDate = payment.MemberMembership.StartDate,
-                    MembershipEndDate = payment.MemberMembership.EndDate,
-                    MemberName = $"{member.FirstName} {member.LastName}",
-                    MemberEmail = member.Email
-                };
-            }
-            catch (Exception ex)
-            {
-                // Log the exception
-                System.Diagnostics.Debug.WriteLine($"Error retrieving receipt: {ex.Message}");
-                return null;
-            }
-        }
-
-        // Generate transaction reference
-        private string GenerateTransactionReference()
-        {
-            return "GYM-" + DateTime.Now.ToString("yyyyMMdd") + "-" +
-                   Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
-        }
-
-        // Mask card number
-        private string MaskCardNumber(string cardNumber)
-        {
-            if (string.IsNullOrEmpty(cardNumber) || cardNumber.Length < 4)
-            {
-                return cardNumber;
-            }
-
-            return "**** **** **** " + cardNumber.Substring(cardNumber.Length - 4);
-        }
-
-        // Mask account number
-        private string MaskAccountNumber(string accountNumber)
-        {
-            if (string.IsNullOrEmpty(accountNumber) || accountNumber.Length < 4)
-            {
-                return accountNumber;
-            }
-
-            return "****" + accountNumber.Substring(accountNumber.Length - 4);
-        }
-
-        // Validate card number using Luhn algorithm
-        private bool IsValidCardNumber(string cardNumber)
-        {
-            if (string.IsNullOrEmpty(cardNumber) || cardNumber.Length != 16)
-                return false;
-
-            if (!cardNumber.All(char.IsDigit))
-                return false;
-
-            int sum = 0;
-            bool isEven = false;
-
-            for (int i = cardNumber.Length - 1; i >= 0; i--)
-            {
-                int digit = cardNumber[i] - '0';
-
-                if (isEven)
-                {
-                    digit *= 2;
-                    if (digit > 9)
-                        digit -= 9;
-                }
-
-                sum += digit;
-                isEven = !isEven;
-            }
-
-            return (sum % 10 == 0);
-        }
-
-        // Validate expiry date
-        private bool IsValidExpiryDate(string expiryDate)
-        {
-            if (string.IsNullOrEmpty(expiryDate) || expiryDate.Length != 5)
-                return false;
-
-            var parts = expiryDate.Split('/');
-            if (parts.Length != 2)
-                return false;
-
-            if (!int.TryParse(parts[0], out int month) || !int.TryParse(parts[1], out int year))
-                return false;
-
-            if (month < 1 || month > 12)
-                return false;
-
-            // Convert YY to YYYY
-            year += 2000;
-
-            var expiryDateTime = new DateTime(year, month, 1).AddMonths(1).AddDays(-1);
-            return expiryDateTime >= DateTime.Now;
-        }
-
-        // Get card bank name from card number
-        private string GetCardBankName(string cardNumber)
-        {
-            if (string.IsNullOrEmpty(cardNumber))
-                return "Unknown";
-
-            var cleanNumber = cardNumber.Replace(" ", "");
-
-            // Detect card type from number prefix
-            if (cleanNumber.StartsWith("4"))
-                return "Visa";
-            else if (cleanNumber.StartsWith("51") || cleanNumber.StartsWith("52") ||
-                     cleanNumber.StartsWith("53") || cleanNumber.StartsWith("54") ||
-                     cleanNumber.StartsWith("55"))
-                return "Mastercard";
-            else if (cleanNumber.StartsWith("34") || cleanNumber.StartsWith("37"))
-                return "American Express";
-            else if (cleanNumber.StartsWith("6011"))
-                return "Discover";
-            else if (cleanNumber.StartsWith("36"))
-                return "Diners Club";
-            else
-                return "Unknown";
-        }
-
-        #endregion
 
         protected override void Dispose(bool disposing)
         {

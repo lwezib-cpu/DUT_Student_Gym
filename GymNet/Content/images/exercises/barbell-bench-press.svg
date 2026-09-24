@@ -1,0 +1,18 @@
+﻿<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bench -->
+  <rect x="40" y="100" width="90" height="10" rx="3" fill="#13241F" opacity="0.85"/>
+  <rect x="48" y="110" width="8" height="20" fill="#13241F" opacity="0.85"/>
+  <rect x="112" y="110" width="8" height="20" fill="#13241F" opacity="0.85"/>
+  <!-- Figure lying on bench -->
+  <circle cx="52" cy="88" r="12" fill="#0E8F6E"/>
+  <rect x="60" y="92" width="55" height="14" rx="7" fill="#0E8F6E"/>
+  <!-- Arms up to bar -->
+  <rect x="78" y="60" width="9" height="34" rx="4" fill="#0E8F6E" transform="rotate(-8 82 77)"/>
+  <rect x="98" y="60" width="9" height="34" rx="4" fill="#0E8F6E" transform="rotate(8 102 77)"/>
+  <!-- Barbell -->
+  <rect x="20" y="55" width="150" height="7" rx="3" fill="#13241F"/>
+  <circle cx="30" cy="58" r="16" fill="#E2A63B"/>
+  <circle cx="160" cy="58" r="16" fill="#E2A63B"/>
+  <!-- Legs -->
+  <rect x="110" y="98" width="10" height="30" rx="5" fill="#0E8F6E" transform="rotate(20 115 113)"/>
+</svg>

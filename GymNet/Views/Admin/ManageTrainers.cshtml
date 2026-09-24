@@ -1,0 +1,54 @@
+﻿﻿@model List<GymNet.ViewModels.TrainerListItemViewModel>
+@{
+    ViewBag.Title = "Manage Trainers";
+    ViewBag.Active = "ManageTrainers";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-1">
+    <h2 class="fw-bold mb-0">Manage Trainers</h2>
+    <a href="@Url.Action("RegisterTrainer", "Admin")" class="btn btn-danger">
+        <i class="bi bi-person-plus me-1"></i>Add Trainer
+    </a>
+</div>
+<p class="text-muted mb-4">Trainer photos and specialties shown here appear on the public homepage and on every class they run.</p>
+
+@if (!Model.Any())
+{
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <p class="text-muted mb-0">No trainers yet. Add your first one above.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var t in Model)
+        {
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body p-4 text-center">
+                        @if (!string.IsNullOrEmpty(t.ProfilePhotoUrl))
+                        {
+                            <img src="@Url.Content(t.ProfilePhotoUrl)" alt="@t.FullName" class="rounded-circle mb-3" style="width: 90px; height: 90px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="rounded-circle bg-secondary bg-opacity-25 mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 90px; height: 90px; font-size: 2rem;">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                        }
+                        <h5 class="fw-bold mb-1">@t.FullName</h5>
+                        <span class="badge bg-danger mb-2">@t.Specialty</span>
+                        <p class="text-muted small mb-2">@t.Email</p>
+                        <p class="text-muted small mb-3">@t.ClassCount active class(es)</p>
+                        <a href="@Url.Action("EditTrainer", "Admin", new { id = t.UserId })" class="btn btn-sm btn-outline-danger w-100">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

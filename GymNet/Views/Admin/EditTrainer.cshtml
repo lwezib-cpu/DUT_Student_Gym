@@ -1,0 +1,98 @@
+﻿﻿@model GymNet.ViewModels.EditTrainerViewModel
+@{
+    ViewBag.Title = "Edit Trainer";
+    ViewBag.Active = "ManageTrainers";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="fw-bold mb-1">Edit Trainer</h2>
+<p class="text-muted mb-4">Update this trainer's details or replace their photo.</p>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                @if (!string.IsNullOrEmpty(Model.ExistingPhotoUrl))
+                {
+                    <div class="text-center mb-3">
+                        <img src="@Url.Content(Model.ExistingPhotoUrl)" alt="@Model.FirstName" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;" />
+                    </div>
+                }
+
+                @using (Html.BeginForm("EditTrainer", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.UserId)
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            @Html.LabelFor(m => m.FirstName, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-6 mb-3">
+                            @Html.LabelFor(m => m.LastName, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.LastName, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger small" })
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.Email, new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email" })
+                        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.PhoneNumber, new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.Specialty, new { @class = "form-label" })
+                        @Html.DropDownListFor(m => m.Specialty, new SelectListItem[]
+                        {
+                            new SelectListItem { Text = "Yoga", Value = "Yoga" },
+                            new SelectListItem { Text = "Fitness", Value = "Fitness" },
+                            new SelectListItem { Text = "Cardio", Value = "Cardio" },
+                            new SelectListItem { Text = "Basic Strength Training", Value = "Basic Strength Training" }
+                        }, new { @class = "form-select" })
+                        @Html.ValidationMessageFor(m => m.Specialty, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Replace Photo</label>
+                        <input type="file" name="Photo" class="form-control" accept="image/*" />
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger py-2">Save Changes</button>
+                        <a href="@Url.Action("ManageTrainers", "Admin")" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card shadow-sm mt-4">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-1"><i class="bi bi-key me-2 text-danger"></i>Reset Password</h6>
+                <p class="text-muted small mb-3">Use this if the trainer can't log in - it replaces their current password with the one you set here.</p>
+                @using (Html.BeginForm("ResetTrainerPassword", "Admin", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="userId" value="@Model.UserId" />
+                    <div class="input-group">
+                        <input type="password" name="newPassword" class="form-control" placeholder="New password (min 6 characters)" minlength="6" required />
+                        <button type="submit" class="btn btn-outline-danger">Reset</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

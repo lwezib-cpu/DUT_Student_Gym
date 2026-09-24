@@ -4,348 +4,146 @@
     Layout = "~/Views/Shared/_MemberLayout.cshtml";
 }
 
-<div class="container my-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <!-- Plan Summary Card -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="bi bi-basket me-2 text-danger"></i>
-                        Order Summary
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-1">@ViewBag.PlanName</h5>
-                            <p class="text-muted mb-0">@ViewBag.DurationInMonths Months Membership</p>
+<h2 class="fw-bold mb-4">Complete Your Payment</h2>
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h5 class="mb-4">Payment Details</h5>
+
+                @using (Html.BeginForm("Payment", "Membership", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.MembershipPlanId)
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Select Payment Method</label>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-check card p-3">
+                                    @Html.RadioButtonFor(m => m.PaymentMethod, "Credit Card", new { @class = "form-check-input", id = "creditCard" })
+                                    <label class="form-check-label" for="creditCard">
+                                        <i class="bi bi-credit-card me-2"></i>Credit Card
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check card p-3">
+                                    @Html.RadioButtonFor(m => m.PaymentMethod, "Debit Card", new { @class = "form-check-input", id = "debitCard" })
+                                    <label class="form-check-label" for="debitCard">
+                                        <i class="bi bi-credit-card-2-front me-2"></i>Debit Card
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check card p-3">
+                                    @Html.RadioButtonFor(m => m.PaymentMethod, "EFT", new { @class = "form-check-input", id = "eft" })
+                                    <label class="form-check-label" for="eft">
+                                        <i class="bi bi-bank me-2"></i>EFT Transfer
+                                    </label>
+                                </div>
+                            </div>
                         </div>
-                        <div class="text-end">
-                            <h3 class="text-danger fw-bold mb-0">R @ViewBag.Price</h3>
-                            <small class="text-muted">Once-off payment</small>
+                        @Html.ValidationMessageFor(m => m.PaymentMethod, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="row g-3" id="cardFields">
+                        <div class="col-12">
+                            @Html.LabelFor(m => m.CardHolderName, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.CardHolderName, new { @class = "form-control", placeholder = "John Doe" })
+                            @Html.ValidationMessageFor(m => m.CardHolderName, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-md-8">
+                            @Html.LabelFor(m => m.CardNumber, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.CardNumber, new { @class = "form-control", placeholder = "1234567890123456", maxlength = "16" })
+                            @Html.ValidationMessageFor(m => m.CardNumber, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-md-2">
+                            @Html.LabelFor(m => m.ExpiryDate, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.ExpiryDate, new { @class = "form-control", placeholder = "MM/YY", maxlength = "5" })
+                            @Html.ValidationMessageFor(m => m.ExpiryDate, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-md-2">
+                            @Html.LabelFor(m => m.CVV, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.CVV, new { @class = "form-control", placeholder = "123", maxlength = "4", type = "password" })
+                            @Html.ValidationMessageFor(m => m.CVV, "", new { @class = "text-danger small" })
                         </div>
                     </div>
-                </div>
+
+                    <div class="row g-3" id="eftFields">
+                        <div class="col-md-6">
+                            @Html.LabelFor(m => m.BankName, new { @class = "form-label" })
+                            @Html.DropDownListFor(m => m.BankName, new SelectListItem[]
+                            {
+                                new SelectListItem { Text = "Select Bank", Value = "" },
+                                new SelectListItem { Text = "Standard Bank", Value = "Standard Bank" },
+                                new SelectListItem { Text = "FNB", Value = "FNB" },
+                                new SelectListItem { Text = "ABSA", Value = "ABSA" },
+                                new SelectListItem { Text = "Nedbank", Value = "Nedbank" },
+                                new SelectListItem { Text = "Capitec", Value = "Capitec" },
+                                new SelectListItem { Text = "African Bank", Value = "African Bank" }
+                            }, new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.BankName, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-md-6">
+                            @Html.LabelFor(m => m.AccountNumber, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.AccountNumber, new { @class = "form-control", placeholder = "1234567890" })
+                            @Html.ValidationMessageFor(m => m.AccountNumber, "", new { @class = "text-danger small" })
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        This is a demo payment system. No real transactions will be processed.
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 py-2 mt-3">Pay R@(ViewBag.Price)</button>
+                }
             </div>
+        </div>
+    </div>
 
-            <!-- Payment Method Selection -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="bi bi-credit-card me-2 text-danger"></i>
-                        Payment Method
-                    </h5>
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="fw-bold">Order Summary</h5>
+                <hr>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Plan:</span>
+                    <strong>@ViewBag.PlanName</strong>
                 </div>
-                <div class="card-body">
-                    @using (Html.BeginForm("Payment", "Membership", FormMethod.Post, new { id = "paymentForm" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        @Html.HiddenFor(m => m.MembershipPlanId)
-
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                        <!-- Payment Method Selection -->
-                        <div class="row mb-4">
-                            <div class="col-md-4">
-                                <div class="payment-method-card">
-                                    <input type="radio" name="PaymentMethod" id="creditCard" value="Credit Card" class="d-none payment-method-radio" />
-                                    <label for="creditCard" class="payment-method-label">
-                                        <i class="bi bi-credit-card fs-1"></i>
-                                        <h6 class="mt-2 mb-0">Credit Card</h6>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="payment-method-card">
-                                    <input type="radio" name="PaymentMethod" id="debitCard" value="Debit Card" class="d-none payment-method-radio" />
-                                    <label for="debitCard" class="payment-method-label">
-                                        <i class="bi bi-credit-card-2-front fs-1"></i>
-                                        <h6 class="mt-2 mb-0">Debit Card</h6>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="payment-method-card">
-                                    <input type="radio" name="PaymentMethod" id="eft" value="EFT" class="d-none payment-method-radio" />
-                                    <label for="eft" class="payment-method-label">
-                                        <i class="bi bi-bank fs-1"></i>
-                                        <h6 class="mt-2 mb-0">EFT</h6>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Credit/Debit Card Form -->
-                        <div id="cardDetails" style="display: none;">
-                            <h6 class="fw-bold mb-3">Card Details</h6>
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <label for="CardHolderName" class="form-label">Card Holder Name</label>
-                                    <input type="text" id="CardHolderName" name="CardHolderName" class="form-control" placeholder="Enter name as it appears on card" />
-                                </div>
-                                <div class="col-12">
-                                    <label for="CardNumber" class="form-label">Card Number</label>
-                                    <input type="text" id="CardNumber" name="CardNumber" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19" />
-                                </div>
-                                <div class="col-6">
-                                    <label for="ExpiryDate" class="form-label">Expiry Date</label>
-                                    <div class="input-group">
-                                        <input type="text" id="ExpiryDate" name="ExpiryDate" class="form-control" placeholder="MM/YY" readonly />
-                                        <button type="button" class="btn btn-outline-secondary" id="expiryPickerBtn">
-                                            <i class="bi bi-calendar3"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <label for="CVV" class="form-label">CVV</label>
-                                    <input type="password" id="CVV" name="CVV" class="form-control" maxlength="4" placeholder="123" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- EFT Form -->
-                        <div id="eftDetails" style="display: none;">
-                            <h6 class="fw-bold mb-3">Bank Account Details</h6>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="BankName" class="form-label">Bank Name</label>
-                                    <select id="BankName" name="BankName" class="form-select">
-                                        <option value="">Select Bank</option>
-                                        <option value="FNB">First National Bank (FNB)</option>
-                                        <option value="Standard Bank">Standard Bank</option>
-                                        <option value="ABSA">ABSA Bank</option>
-                                        <option value="Nedbank">Nedbank</option>
-                                        <option value="Capitec">Capitec Bank</option>
-                                        <option value="Investec">Investec</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="AccountType" class="form-label">Account Type</label>
-                                    <select id="AccountType" name="AccountType" class="form-select">
-                                        <option value="">Select Account Type</option>
-                                        <option value="Cheque">Cheque Account</option>
-                                        <option value="Savings">Savings Account</option>
-                                        <option value="Transmission">Transmission Account</option>
-                                    </select>
-                                </div>
-                                <div class="col-12">
-                                    <label for="AccountHolderName" class="form-label">Account Holder Name</label>
-                                    <input type="text" id="AccountHolderName" name="AccountHolderName" class="form-control" placeholder="Enter account holder name" />
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="AccountNumber" class="form-label">Account Number</label>
-                                    <input type="text" id="AccountNumber" name="AccountNumber" class="form-control" maxlength="13" placeholder="1234567890123" />
-                                    <small class="text-muted">Account number must be 11-13 digits</small>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="BranchCode" class="form-label">Branch Code</label>
-                                    <input type="text" id="BranchCode" name="BranchCode" class="form-control" maxlength="6" placeholder="123456" />
-                                    <small class="text-muted">6-digit branch code</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-danger btn-lg" id="submitPayment">
-                                <i class="bi bi-lock me-1"></i> Pay R @ViewBag.Price
-                            </button>
-                            <a href="@Url.Action("Plans", "Membership")" class="btn btn-outline-secondary">
-                                Cancel
-                            </a>
-                        </div>
-                    }
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Duration:</span>
+                    <strong>@ViewBag.DurationInMonths months</strong>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold">Total:</span>
+                    <h5 class="fw-bold text-danger">R@(ViewBag.Price)</h5>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Simple Expiry Date Selection -->
-<div class="modal fade" id="expiryDateModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Select Expiry Date</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Month</label>
-                    <select id="expiryMonth" class="form-select">
-                        <option value="01">January</option>
-                        <option value="02">February</option>
-                        <option value="03">March</option>
-                        <option value="04">April</option>
-                        <option value="05">May</option>
-                        <option value="06">June</option>
-                        <option value="07">July</option>
-                        <option value="08">August</option>
-                        <option value="09">September</option>
-                        <option value="10">October</option>
-                        <option value="11">November</option>
-                        <option value="12">December</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Year</label>
-                    <select id="expiryYear" class="form-select">
-                        <option value="24">2024</option>
-                        <option value="25">2025</option>
-                        <option value="26">2026</option>
-                        <option value="27">2027</option>
-                        <option value="28">2028</option>
-                        <option value="29">2029</option>
-                        <option value="30">2030</option>
-                        <option value="31">2031</option>
-                        <option value="32">2032</option>
-                        <option value="33">2033</option>
-                        <option value="34">2034</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmExpiryDate" data-bs-dismiss="modal">Confirm</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    .payment-method-card {
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-        .payment-method-card:hover {
-            transform: translateY(-5px);
-        }
-
-    .payment-method-label {
-        display: block;
-        text-align: center;
-        padding: 20px;
-        border: 2px solid #dee2e6;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .payment-method-card input:checked + .payment-method-label {
-        border-color: #dc3545;
-        background-color: #dc35451a;
-        color: #dc3545;
-    }
-
-    .payment-method-label i {
-        display: block;
-        margin-bottom: 10px;
-    }
-</style>
-
-@section Scripts {
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
     <script>
-        $(document).ready(function () {
-            // Handle payment method selection
-            $('.payment-method-radio').change(function () {
-                var method = $(this).val();
-
-                if (method === 'Credit Card' || method === 'Debit Card') {
-                    $('#cardDetails').show();
-                    $('#eftDetails').hide();
-                } else if (method === 'EFT') {
-                    $('#cardDetails').hide();
-                    $('#eftDetails').show();
-                }
-            });
-
-            // Card number formatting
-            $('#CardNumber').on('input', function () {
-                var value = $(this).val().replace(/\D/g, '');
-                if (value.length > 16) {
-                    value = value.substring(0, 16);
-                }
-                var formatted = value.replace(/(\d{4})(?=\d)/g, '$1 ');
-                $(this).val(formatted);
-            });
-
-            // Open expiry date modal
-            $('#expiryPickerBtn').click(function () {
-                $('#expiryDateModal').modal('show');
-            });
-
-            // Confirm expiry date
-            $('#confirmExpiryDate').click(function () {
-                var month = $('#expiryMonth').val();
-                var year = $('#expiryYear').val();
-                $('#ExpiryDate').val(month + '/' + year);
-                console.log('Expiry date set to: ' + month + '/' + year);
-            });
-
-            // Account number - only numbers
-            $('#AccountNumber').on('input', function () {
-                var value = $(this).val().replace(/\D/g, '');
-                if (value.length > 13) {
-                    value = value.substring(0, 13);
-                }
-                $(this).val(value);
-            });
-
-            // Branch code - only numbers
-            $('#BranchCode').on('input', function () {
-                var value = $(this).val().replace(/\D/g, '');
-                if (value.length > 6) {
-                    value = value.substring(0, 6);
-                }
-                $(this).val(value);
-            });
-
-            // CVV - only numbers
-            $('#CVV').on('input', function () {
-                var value = $(this).val().replace(/\D/g, '');
-                if (value.length > 4) {
-                    value = value.substring(0, 4);
-                }
-                $(this).val(value);
-            });
-
-            // Form submission
-            $('#paymentForm').on('submit', function (e) {
-                var selectedMethod = $('input[name="PaymentMethod"]:checked').val();
-
-                if (!selectedMethod) {
-                    e.preventDefault();
-                    alert('Please select a payment method.');
-                    return false;
-                }
-
-                // Clear fields for hidden sections
-                if (selectedMethod === 'Credit Card' || selectedMethod === 'Debit Card') {
-                    // Clear EFT fields
-                    $('#BankName').val('');
-                    $('#AccountType').val('');
-                    $('#AccountHolderName').val('');
-                    $('#AccountNumber').val('');
-                    $('#BranchCode').val('');
-                } else if (selectedMethod === 'EFT') {
-                    // Clear card fields
-                    $('#CardHolderName').val('');
-                    $('#CardNumber').val('');
-                    $('#ExpiryDate').val('');
-                    $('#CVV').val('');
-                }
-
-                console.log('Submitting form with payment method: ' + selectedMethod);
-                return true;
-            });
-
-            // If there's a pre-selected method (after validation error)
-            var selectedMethod = $('input[name="PaymentMethod"]:checked').val();
-            if (selectedMethod) {
-                $('.payment-method-radio').trigger('change');
-            }
-        });
+        function togglePaymentFields() {
+            var isEft = document.getElementById('eft').checked;
+            document.getElementById('cardFields').classList.toggle('d-none', isEft);
+            document.getElementById('eftFields').classList.toggle('d-none', !isEft);
+        }
+        document.getElementById('creditCard').addEventListener('change', togglePaymentFields);
+        document.getElementById('debitCard').addEventListener('change', togglePaymentFields);
+        document.getElementById('eft').addEventListener('change', togglePaymentFields);
+        document.getElementById('creditCard').checked = true;
+        togglePaymentFields();
     </script>
 }

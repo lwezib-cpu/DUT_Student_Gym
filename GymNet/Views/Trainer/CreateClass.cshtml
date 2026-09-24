@@ -1,0 +1,63 @@
+﻿﻿@model GymNet.ViewModels.CreateClassViewModel
+@{
+    ViewBag.Title = "Create Class";
+    ViewBag.Active = "CreateClass";
+    Layout = "~/Views/Shared/_TrainerLayout.cshtml";
+}
+
+<h2 class="fw-bold mb-1">Create a Class</h2>
+<p class="text-muted mb-4">Members will see this on their Classes page as soon as you save it.</p>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                @using (Html.BeginForm("CreateClass", "Trainer", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.Title, new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "e.g. Morning HIIT" })
+                        @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.Description, new { @class = "form-label" })
+                        @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 3 })
+                        @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.StartTime, new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.StartTime, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local" })
+                        @Html.ValidationMessageFor(m => m.StartTime, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            @Html.LabelFor(m => m.DurationMinutes, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.DurationMinutes, new { @class = "form-control", type = "number" })
+                            @Html.ValidationMessageFor(m => m.DurationMinutes, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-6 mb-3">
+                            @Html.LabelFor(m => m.Capacity, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.Capacity, new { @class = "form-control", type = "number" })
+                            @Html.ValidationMessageFor(m => m.Capacity, "", new { @class = "text-danger small" })
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger py-2">Create Class</button>
+                        <a href="@Url.Action("Dashboard", "Trainer")" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

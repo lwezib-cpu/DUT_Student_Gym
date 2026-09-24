@@ -30,6 +30,20 @@ namespace GymNet.Controllers
 
             var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
+            // A visit that has a CheckInTime but no CheckOutTime yet is "open" - the member is in the gym now.
+            var openCheckIn = await db.CheckIns
+                .Where(c => c.UserId == userId && c.CheckOutTime == null)
+                .OrderByDescending(c => c.CheckInTime)
+                .FirstOrDefaultAsync();
+
+            var monthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            var totalMinutesThisMonth = await db.CheckIns
+                .Where(c => c.UserId == userId && c.CheckOutTime != null && c.CheckInTime >= monthStart)
+                .SumAsync(c => (int?)c.DurationMinutes) ?? 0;
+            var totalMinutesAllTime = await db.CheckIns
+                .Where(c => c.UserId == userId && c.CheckOutTime != null)
+                .SumAsync(c => (int?)c.DurationMinutes) ?? 0;
+
             var model = new CheckInViewModel
             {
                 UserId = userId,
@@ -38,7 +52,12 @@ namespace GymNet.Controllers
                 MembershipPlan = latestMembership?.MembershipPlan?.Name ?? "N/A",
                 MembershipEndDate = latestMembership?.EndDate,
                 CanCheckIn = false,
-                Message = ""
+                Message = "",
+                IsCheckedInNow = openCheckIn != null,
+                OpenCheckInId = openCheckIn?.Id,
+                OpenCheckInTime = openCheckIn?.CheckInTime,
+                TotalMinutesThisMonth = totalMinutesThisMonth,
+                TotalMinutesAllTime = totalMinutesAllTime
             };
 
             // Check if user can check in
@@ -61,6 +80,11 @@ namespace GymNet.Controllers
             {
                 model.CanCheckIn = false;
                 model.Message = "No completed payment found. Please complete your payment to check in.";
+            }
+            else if (model.IsCheckedInNow)
+            {
+                model.CanCheckIn = false; // scanner is for checking in; use the Check Out button below
+                model.Message = "You're currently checked in. Scan or tap Check Out when you leave.";
             }
             else
             {
@@ -140,21 +164,16 @@ namespace GymNet.Controllers
                 });
             }
 
-            // Check if already checked in today
-            var today = DateTime.Today;
-            var tomorrow = today.AddDays(1);
+            // A member can't check in again while they still have an open (not checked-out) visit
+            var openCheckIn = await db.CheckIns
+                .AnyAsync(c => c.UserId == userId && c.CheckOutTime == null);
 
-            var alreadyCheckedIn = await db.CheckIns
-                .AnyAsync(c => c.UserId == userId &&
-                               c.CheckInTime >= today &&
-                               c.CheckInTime < tomorrow);
-
-            if (alreadyCheckedIn)
+            if (openCheckIn)
             {
                 return Json(new CheckInResultViewModel
                 {
                     Success = false,
-                    Message = "You've already checked in today."
+                    Message = "You're already checked in. Please check out first."
                 });
             }
 
@@ -178,8 +197,52 @@ namespace GymNet.Controllers
             });
         }
 
+        // POST: /CheckIn/CheckOut
+        // Closes the member's current open visit and records how long they were in the gym.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> CheckOut()
+        {
+            var userId = User.Identity.GetUserId();
+
+            var openCheckIn = await db.CheckIns
+                .Where(c => c.UserId == userId && c.CheckOutTime == null)
+                .OrderByDescending(c => c.CheckInTime)
+                .FirstOrDefaultAsync();
+
+            if (openCheckIn == null)
+            {
+                return Json(new CheckInResultViewModel
+                {
+                    Success = false,
+                    Message = "You don't have an open check-in to close."
+                });
+            }
+
+            openCheckIn.CheckOutTime = DateTime.Now;
+            openCheckIn.DurationMinutes = (int)Math.Round((openCheckIn.CheckOutTime.Value - openCheckIn.CheckInTime).TotalMinutes);
+            if (openCheckIn.DurationMinutes < 0) openCheckIn.DurationMinutes = 0;
+
+            await db.SaveChangesAsync();
+
+            return Json(new CheckInResultViewModel
+            {
+                Success = true,
+                Message = "Checked out! You spent " + FormatDuration(openCheckIn.DurationMinutes.Value) + " at the gym.",
+                CheckInTime = openCheckIn.CheckOutTime
+            });
+        }
+
+        private static string FormatDuration(int minutes)
+        {
+            var hours = minutes / 60;
+            var mins = minutes % 60;
+            return hours > 0 ? $"{hours}h {mins}m" : $"{mins}m";
+        }
+
         // GET: /CheckIn/History
-        public async Task<ActionResult> History()
+        // GET: /CheckIn/History
+        public async Task<ActionResult> History(int? month, int? year)
         {
             var userId = User.Identity.GetUserId();
 
@@ -189,13 +252,33 @@ namespace GymNet.Controllers
                 .Select(c => new CheckInHistoryViewModel
                 {
                     Id = c.Id,
+                    UserId = c.UserId,
                     FullName = c.User.FirstName + " " + c.User.LastName,
                     Email = c.User.Email,
                     CheckInTime = c.CheckInTime,
                     CheckInMethod = c.CheckInMethod,
-                    QRCode = c.QRCode
+                    QRCode = c.QRCode,
+                    CheckOutTime = c.CheckOutTime,
+                    DurationMinutes = c.DurationMinutes
                 })
                 .ToListAsync();
+
+            var calendarMonth = month ?? DateTime.Today.Month;
+            var calendarYear = year ?? DateTime.Today.Year;
+
+            // Clamp to a valid month/year rather than erroring on a bad query string
+            if (calendarMonth < 1) calendarMonth = 1;
+            if (calendarMonth > 12) calendarMonth = 12;
+
+            var checkedInDays = checkIns
+                .Where(c => c.CheckInTime.Month == calendarMonth && c.CheckInTime.Year == calendarYear)
+                .Select(c => c.CheckInTime.Day)
+                .Distinct()
+                .ToList();
+
+            ViewBag.CalendarMonth = calendarMonth;
+            ViewBag.CalendarYear = calendarYear;
+            ViewBag.CheckedInDays = checkedInDays;
 
             return View(checkIns);
         }

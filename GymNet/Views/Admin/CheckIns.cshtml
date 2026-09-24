@@ -58,6 +58,20 @@
     </div>
 </div>
 
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card shadow-sm border-success">
+            <div class="card-body">
+                <div class="stat-icon bg-success bg-opacity-10 text-success mb-3">
+                    <i class="bi bi-person-walking"></i>
+                </div>
+                <h6 class="text-muted mb-1">Currently In Gym</h6>
+                <h4 class="fw-bold mb-0">@Model.MembersCurrentlyInGym</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Today's Check-Ins -->
 <div class="card shadow-sm mb-4">
     <div class="card-header bg-white">
@@ -77,6 +91,9 @@
                             <th>Time</th>
                             <th>Method</th>
                             <th>QR Code</th>
+                            <th>Check-Out</th>
+                            <th>Duration</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -91,6 +108,34 @@
                                 <td>@checkIn.CheckInTime.ToString("HH:mm:ss")</td>
                                 <td>@checkIn.CheckInMethod</td>
                                 <td><small class="text-muted">@checkIn.QRCode</small></td>
+                                <td>
+                                    @if (checkIn.CheckOutTime.HasValue)
+                                    {
+                                        @checkIn.CheckOutTime.Value.ToString("HH:mm:ss")
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">In gym</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (checkIn.DurationMinutes.HasValue)
+                                    {
+                                        @(checkIn.DurationMinutes.Value / 60)<text>h </text>@(checkIn.DurationMinutes.Value % 60)<text>m</text>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!checkIn.CheckOutTime.HasValue)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="checkOutVisit(@checkIn.Id, this)">
+                                            Check Out
+                                        </button>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -149,3 +194,30 @@
         }
     </div>
 </div>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+}
+
+<script>
+    function checkOutVisit(checkInId, btn) {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        btn.disabled = true;
+        fetch('@Url.Action("CheckOutById", "Admin")', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ checkInId: checkInId, __RequestVerificationToken: token })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert(data.message);
+                btn.disabled = false;
+            }
+        })
+        .catch(() => { btn.disabled = false; });
+    }
+</script>

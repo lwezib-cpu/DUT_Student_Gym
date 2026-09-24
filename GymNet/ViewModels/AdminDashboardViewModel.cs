@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Web;
 
 namespace GymNet.ViewModels
 {
@@ -51,6 +52,11 @@ namespace GymNet.ViewModels
         public string MembershipPlan { get; set; }
         public bool HasPaid { get; set; }
         public bool CheckedInToday { get; set; }
+
+        // True only while the member has an OPEN visit (checked in, not yet checked
+        // out) - different from CheckedInToday, since with checkout a member can
+        // check in/out more than once in the same day.
+        public bool IsCurrentlyCheckedIn { get; set; }
     }
     public class EditMemberViewModel
     {
@@ -66,9 +72,9 @@ namespace GymNet.ViewModels
         [Display(Name = "Last Name")]
         public string LastName { get; set; }
 
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Enter a valid email address")]
-        [Display(Name = "Email Address")]
+        [Required(ErrorMessage = "Student email is required")]
+        [StudentEmail]
+        [Display(Name = "Student Email")]
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Phone number is required")]
@@ -120,9 +126,9 @@ namespace GymNet.ViewModels
         [Display(Name = "Last Name")]
         public string LastName { get; set; }
 
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Enter a valid email address")]
-        [Display(Name = "Email Address")]
+        [Required(ErrorMessage = "Student email is required")]
+        [StudentEmail]
+        [Display(Name = "Student Email")]
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Phone number is required")]
@@ -149,6 +155,92 @@ namespace GymNet.ViewModels
 
         [Display(Name = "Collect Payment Now")]
         public bool CollectPaymentNow { get; set; }
+    }
+
+    public class TrainerListItemViewModel
+    {
+        public string UserId { get; set; }
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string Specialty { get; set; }
+        public string ProfilePhotoUrl { get; set; }
+        public int ClassCount { get; set; }
+    }
+
+    public class AdminRegisterTrainerViewModel
+    {
+        [Required(ErrorMessage = "First name is required")]
+        [StringLength(50)]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; }
+
+        [Required(ErrorMessage = "Last name is required")]
+        [StringLength(50)]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Enter a valid email address")]
+        [Display(Name = "Email Address")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Phone number is required")]
+        [Phone(ErrorMessage = "Enter a valid phone number")]
+        [Display(Name = "Phone Number")]
+        public string PhoneNumber { get; set; }
+
+        [Required(ErrorMessage = "Specialty is required")]
+        [Display(Name = "Specialty")]
+        public string Specialty { get; set; }
+
+        [Required(ErrorMessage = "Please set a password for this trainer")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
+        public string Password { get; set; }
+
+        [Required(ErrorMessage = "Please confirm the password")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm Password")]
+        [Compare("Password", ErrorMessage = "Passwords do not match")]
+        public string ConfirmPassword { get; set; }
+
+        [Display(Name = "Photo")]
+        public HttpPostedFileBase Photo { get; set; }
+    }
+
+    public class EditTrainerViewModel
+    {
+        public string UserId { get; set; }
+
+        [Required(ErrorMessage = "First name is required")]
+        [StringLength(50)]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; }
+
+        [Required(ErrorMessage = "Last name is required")]
+        [StringLength(50)]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Enter a valid email address")]
+        [Display(Name = "Email Address")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Phone number is required")]
+        [Phone(ErrorMessage = "Enter a valid phone number")]
+        [Display(Name = "Phone Number")]
+        public string PhoneNumber { get; set; }
+
+        [Required(ErrorMessage = "Specialty is required")]
+        [Display(Name = "Specialty")]
+        public string Specialty { get; set; }
+
+        public string ExistingPhotoUrl { get; set; }
+
+        [Display(Name = "Replace Photo")]
+        public HttpPostedFileBase Photo { get; set; }
     }
     public class AdminProcessPaymentViewModel
     {
